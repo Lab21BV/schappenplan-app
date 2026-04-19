@@ -1,0 +1,3 @@
+# schappenplan-app
+
+Schappenplan app.

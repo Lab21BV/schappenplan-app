@@ -1,0 +1,151 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Showroom {
+  id        String   @id @default(cuid())
+  name      String
+  location  String
+  createdAt DateTime @default(now())
+
+  users          User[]
+  planogramItems PlanogramItem[]
+  displayConfigs DisplayConfig[]
+  showFloors     ShowFloor[]
+  inventories    Inventory[]
+  salesData      SalesData[]
+}
+
+model User {
+  id         String   @id @default(cuid())
+  name       String
+  email      String   @unique
+  password   String
+  role       String   @default("VERKOPER")
+  showroomId String?
+  createdAt  DateTime @default(now())
+
+  showroom    Showroom?   @relation(fields: [showroomId], references: [id])
+  inventories Inventory[]
+}
+
+model Category {
+  id       String @id @default(cuid())
+  name     String
+  slug     String @unique
+  parentId String?
+  order    Int    @default(0)
+
+  parent         Category?       @relation("CategoryChildren", fields: [parentId], references: [id])
+  children       Category[]      @relation("CategoryChildren")
+  articles        Article[]
+  displayConfigs  DisplayConfig[]
+  inventories     Inventory[]
+  planogramItems  PlanogramItem[]
+}
+
+model Article {
+  id                     String   @id @default(cuid())
+  articleNumber          String   @unique
+  articleName            String
+  supplierNameAnonymized String
+  supplierNameReal       String
+  costPrice              Float    @default(0)
+  sellingPrice           Float    @default(0)
+  grossMargin            Float    @default(0)
+  priorityScore          Float    @default(0)
+  categoryId             String
+  displayTypes           String   @default("[]") // JSON array of display types
+  isActive               Boolean  @default(true)
+  createdAt              DateTime @default(now())
+
+  category       Category        @relation(fields: [categoryId], references: [id])
+  planogramItems PlanogramItem[]
+  showFloors     ShowFloor[]
+  inventories    Inventory[]
+  salesData      SalesData[]
+}
+
+model DisplayConfig {
+  id            String @id @default(cuid())
+  showroomId    String
+  categoryId    String
+  numStroken    Int    @default(0)
+  numWandborden Int    @default(0)
+  numBokken     Int    @default(0)
+
+  showroom Showroom @relation(fields: [showroomId], references: [id])
+  category Category @relation(fields: [categoryId], references: [id])
+
+  @@unique([showroomId, categoryId])
+}
+
+model PlanogramItem {
+  id              String   @id @default(cuid())
+  showroomId      String
+  articleId       String
+  categoryId      String
+  locatieType     String   // WAND | BOK | STROK
+  locatieNummer   Int      @default(1)
+  positie         Int      @default(1)
+  displayAfmeting String   @default("100x60") // 120x60 | 100x60 | STROK
+  notes           String?
+  createdAt       DateTime @default(now())
+
+  showroom Showroom @relation(fields: [showroomId], references: [id])
+  article  Article  @relation(fields: [articleId], references: [id])
+  category Category @relation(fields: [categoryId], references: [id])
+}
+
+model ShowFloor {
+  id         String   @id @default(cuid())
+  showroomId String
+  articleId  String
+  nummer     String?
+  lengte     Float?
+  breedte    Float?
+  status     String?  @default("Actief")
+  stock      Int      @default(0)
+  notes      String?
+  createdAt  DateTime @default(now())
+
+  showroom Showroom @relation(fields: [showroomId], references: [id])
+  article  Article  @relation(fields: [articleId], references: [id])
+}
+
+model Inventory {
+  id             String   @id @default(cuid())
+  showroomId     String
+  articleId      String
+  categoryId     String?
+  locatieType      String?   // WAND | BOK | STROK
+  locatieNummer    Int?      // wand nr or bok nr
+  bordNummer       Int?      // board position within bok (1-10)
+  displayAfmeting  String?   // strook | 100x60 | 120x60
+  stock            Int       @default(0)
+  notes          String?
+  createdById    String
+  createdAt      DateTime  @default(now())
+
+  showroom  Showroom  @relation(fields: [showroomId], references: [id])
+  article   Article   @relation(fields: [articleId], references: [id])
+  category  Category? @relation(fields: [categoryId], references: [id])
+  createdBy User      @relation(fields: [createdById], references: [id])
+}
+
+model SalesData {
+  id         String   @id @default(cuid())
+  articleId  String
+  showroomId String
+  orderDate  DateTime
+  quantity   Int
+  revenue    Float
+
+  article  Article  @relation(fields: [articleId], references: [id])
+  showroom Showroom @relation(fields: [showroomId], references: [id])
+}

@@ -24,6 +24,7 @@ const hqLinks = [
   { href: "/dashboard/planogram", label: "Schappenplan", icon: Grid3X3 },
   { href: "/dashboard/inventory", label: "Inventarisatie", icon: ClipboardList },
   { href: "/dashboard/showfloor", label: "Showvloer", icon: LayoutTemplate },
+  { href: "/dashboard/overzicht", label: "HQ Overzicht", icon: BarChart2 },
   { href: "/dashboard/articles", label: "Artikelen", icon: Package },
   { href: "/dashboard/admin", label: "Beheer", icon: Settings },
 ];

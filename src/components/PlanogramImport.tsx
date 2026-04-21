@@ -7,6 +7,7 @@ interface Showroom { id: string; name: string }
 
 interface Props {
   showrooms: Showroom[];
+  isHQ: boolean;
 }
 
 const TEMPLATE_ROWS = [
@@ -30,7 +31,7 @@ function downloadTemplate() {
 
 type Result = { imported: number; errors: string[] } | null;
 
-export default function PlanogramImport({ showrooms }: Props) {
+export default function PlanogramImport({ showrooms, isHQ }: Props) {
   const [open, setOpen] = useState(false);
   const [showroomId, setShowroomId] = useState(showrooms[0]?.id ?? "");
   const [file, setFile] = useState<File | null>(null);
@@ -64,6 +65,10 @@ export default function PlanogramImport({ showrooms }: Props) {
     }
   }
 
+  function handleExport() {
+    window.location.href = `/api/planogram/export?showroomId=${showroomId}`;
+  }
+
   if (!open) {
     return (
       <button
@@ -89,19 +94,21 @@ export default function PlanogramImport({ showrooms }: Props) {
         Upload een Excel (.xlsx) of CSV-bestand. Het huidige schappenplan van de geselecteerde showroom wordt volledig vervangen.
       </p>
 
-      <div className="flex items-center gap-2">
-        {showrooms.map((s) => (
-          <button
-            key={s.id}
-            onClick={() => setShowroomId(s.id)}
-            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
-              showroomId === s.id ? "bg-blue-700 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-            }`}
-          >
-            {s.name}
-          </button>
-        ))}
-      </div>
+      {isHQ && showrooms.length > 1 && (
+        <div className="flex items-center gap-2 flex-wrap">
+          {showrooms.map((s) => (
+            <button
+              key={s.id}
+              onClick={() => setShowroomId(s.id)}
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
+                showroomId === s.id ? "bg-blue-700 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              {s.name}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="flex items-center gap-3">
         <label className="flex-1 flex items-center gap-3 px-4 py-3 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-blue-300 transition">
@@ -116,8 +123,17 @@ export default function PlanogramImport({ showrooms }: Props) {
           />
         </label>
         <button
-          onClick={downloadTemplate}
+          onClick={handleExport}
+          title="Download huidig schappenplan als CSV"
           className="flex items-center gap-1.5 px-3 py-2 text-sm text-blue-700 hover:bg-blue-50 rounded-lg transition"
+        >
+          <Download className="w-4 h-4" />
+          Exporteer
+        </button>
+        <button
+          onClick={downloadTemplate}
+          title="Download leeg voorbeeldbestand"
+          className="flex items-center gap-1.5 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg transition"
         >
           <Download className="w-4 h-4" />
           Template

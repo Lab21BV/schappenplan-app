@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "postinstall": "prisma generate",
-    "seed": "ts-node --project tsconfig.json -e \"require('dotenv').config()\" prisma/seed.ts"
+    "seed": "ts-node --project tsconfig.json -e \"require('dotenv').config()\" prisma/seed.ts",
+    "setup-showrooms": "npx tsx --env-file=.env scripts/setup-showrooms.ts"
   },
   "prisma": {
     "seed": "npx tsx prisma/seed.ts"

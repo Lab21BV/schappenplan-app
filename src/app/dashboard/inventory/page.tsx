@@ -4,15 +4,27 @@ import Link from "next/link";
 import { Plus } from "lucide-react";
 import InventoryTabs, { type RootGroup, type VerschilRoot, type ShowFloorVerschilItem } from "@/components/InventoryTabs";
 
-export default async function InventoryPage() {
+export default async function InventoryPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ showroom?: string }>;
+}) {
   const session = await auth();
   if (!session) return null;
   const user = session.user as any;
-  const showroomId = user.showroomId ?? undefined;
+  const isHQ = user.role === "HOOFDKANTOOR";
+
+  const { showroom: showroomParam } = await searchParams;
+
+  const allShowrooms = isHQ ? await prisma.showroom.findMany({ orderBy: { name: "asc" } }) : [];
+
+  const showroomId = isHQ
+    ? (allShowrooms.find((s) => s.id === showroomParam)?.id ?? allShowrooms[0]?.id ?? "")
+    : (user.showroomId ?? (await prisma.showroom.findFirst())!.id);
 
   const [inventories, allCategories, planogramItems, showFloors] = await Promise.all([
     prisma.inventory.findMany({
-      where: showroomId ? { showroomId } : {},
+      where: { showroomId },
       include: {
         article: { include: { category: true } },
         category: true,
@@ -30,11 +42,11 @@ export default async function InventoryPage() {
     }),
     prisma.category.findMany({ orderBy: { order: "asc" } }),
     prisma.planogramItem.findMany({
-      where: showroomId ? { showroomId } : {},
+      where: { showroomId },
       include: { article: { include: { category: true } }, category: true },
     }),
     prisma.showFloor.findMany({
-      where: showroomId ? { showroomId } : {},
+      where: { showroomId },
       include: { article: true },
       orderBy: { nummer: "asc" },
     }),
@@ -91,18 +103,14 @@ export default async function InventoryPage() {
 
   const hasLocatie = inventories.some((i) => i.locatieType);
 
-  // ── Verschil: planogram vs inventaris ────────────────────────────────────
-  // match key: articleId|locatieType|locatieNummer
+  // ── Verschil ─────────────────────────────────────────────────────────────
   const invKeys = new Set(
-    inventories
-      .filter((i) => i.locatieType)
-      .map((i) => `${i.articleId}|${i.locatieType}|${i.locatieNummer}`)
+    inventories.filter((i) => i.locatieType).map((i) => `${i.articleId}|${i.locatieType}|${i.locatieNummer}`)
   );
   const planKeys = new Set(
     planogramItems.map((p) => `${p.articleId}|${p.locatieType}|${p.locatieNummer}`)
   );
 
-  // In planogram, not in inventory
   const missingRootMap: Record<string, VerschilRoot> = {};
   for (const p of planogramItems) {
     if (!invKeys.has(`${p.articleId}|${p.locatieType}|${p.locatieNummer}`)) {
@@ -124,7 +132,6 @@ export default async function InventoryPage() {
     }
   }
 
-  // In inventory, not in planogram
   const extraRootMap: Record<string, VerschilRoot> = {};
   for (const inv of inventories) {
     if (!inv.locatieType) continue;
@@ -143,24 +150,27 @@ export default async function InventoryPage() {
     }
   }
 
-  // Showvloer items for verschil tab
   const showFloorVerschil: ShowFloorVerschilItem[] = showFloors
     .filter((sf) => sf.status === "aanwezig, beschadigd" || sf.status === "niet aanwezig")
     .map((sf) => ({
-    id: sf.id,
-    nummer: sf.nummer,
-    articleNumber: sf.article.articleNumber,
-    articleName: sf.article.articleName,
-    status: sf.status,
-    notes: sf.notes,
-  }));
+      id: sf.id,
+      nummer: sf.nummer,
+      articleNumber: sf.article.articleNumber,
+      articleName: sf.article.articleName,
+      status: sf.status,
+      notes: sf.notes,
+    }));
+
+  const selectedShowroom = allShowrooms.find((s) => s.id === showroomId);
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Inventarisatie</h1>
-          <p className="text-gray-500 text-sm mt-1">Per afdeling · Per wand / bok / bord</p>
+          <p className="text-gray-500 text-sm mt-1">
+            {isHQ ? `Showroom ${selectedShowroom?.name} · ` : ""}Per afdeling · Per wand / bok / bord
+          </p>
         </div>
         <Link
           href="/dashboard/inventory/new"
@@ -170,6 +180,25 @@ export default async function InventoryPage() {
           Nieuwe inventarisatie
         </Link>
       </div>
+
+      {/* Showroom selector for HQ */}
+      {isHQ && (
+        <div className="flex items-center gap-2 flex-wrap">
+          {allShowrooms.map((sr) => (
+            <Link
+              key={sr.id}
+              href={`/dashboard/inventory?showroom=${sr.id}`}
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
+                sr.id === showroomId
+                  ? "bg-blue-700 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              {sr.name}
+            </Link>
+          ))}
+        </div>
+      )}
 
       <InventoryTabs
         sortedRoots={sortedRoots}

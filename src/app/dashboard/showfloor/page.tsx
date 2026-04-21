@@ -1,13 +1,25 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import Link from "next/link";
 import ShowFloorManager from "@/components/ShowFloorManager";
 
-export default async function ShowFloorPage() {
+export default async function ShowFloorPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ showroom?: string }>;
+}) {
   const session = await auth();
   if (!session) return null;
   const user = session.user as any;
   const isHQ = user.role === "HOOFDKANTOOR";
-  const showroomId = user.showroomId ?? (await prisma.showroom.findFirst())!.id;
+
+  const { showroom: showroomParam } = await searchParams;
+
+  const allShowrooms = isHQ ? await prisma.showroom.findMany({ orderBy: { name: "asc" } }) : [];
+
+  const showroomId = isHQ
+    ? (allShowrooms.find((s) => s.id === showroomParam)?.id ?? allShowrooms[0]?.id ?? "")
+    : (user.showroomId ?? (await prisma.showroom.findFirst())!.id);
 
   const allCategories = await prisma.category.findMany({ orderBy: { order: "asc" } });
 
@@ -17,7 +29,6 @@ export default async function ShowFloorPage() {
     return cur ?? { id: catId, name: "Overig" };
   }
 
-  // Only leaf categories whose root is "Vloer"
   const vloerLeafCatIds = new Set(
     allCategories
       .filter((c) => !allCategories.some((x) => x.parentId === c.id))
@@ -55,6 +66,26 @@ export default async function ShowFloorPage() {
           Showroom {showroom?.name} · Tentoongestelde vloeren
         </p>
       </div>
+
+      {/* Showroom selector for HQ */}
+      {isHQ && (
+        <div className="flex items-center gap-2 flex-wrap">
+          {allShowrooms.map((sr) => (
+            <Link
+              key={sr.id}
+              href={`/dashboard/showfloor?showroom=${sr.id}`}
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
+                sr.id === showroomId
+                  ? "bg-blue-700 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              {sr.name}
+            </Link>
+          ))}
+        </div>
+      )}
+
       <ShowFloorManager
         showFloors={showFloors as any}
         articles={articles as any}

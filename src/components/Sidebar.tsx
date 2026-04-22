@@ -10,6 +10,7 @@ import {
   LayoutTemplate,
   Settings,
   BarChart2,
+  BookOpen,
 } from "lucide-react";
 
 const verkooperLinks = [
@@ -17,6 +18,7 @@ const verkooperLinks = [
   { href: "/dashboard/planogram", label: "Schappenplan", icon: Grid3X3 },
   { href: "/dashboard/inventory", label: "Inventarisatie", icon: ClipboardList },
   { href: "/dashboard/showfloor", label: "Showvloer", icon: LayoutTemplate },
+  { href: "/dashboard/handleiding", label: "Handleiding", icon: BookOpen },
 ];
 
 const hqLinks = [
@@ -27,6 +29,7 @@ const hqLinks = [
   { href: "/dashboard/overzicht", label: "HQ Overzicht", icon: BarChart2 },
   { href: "/dashboard/articles", label: "Artikelen", icon: Package },
   { href: "/dashboard/admin", label: "Beheer", icon: Settings },
+  { href: "/dashboard/handleiding", label: "Handleiding", icon: BookOpen },
 ];
 
 export default function Sidebar({ role }: { role: string }) {

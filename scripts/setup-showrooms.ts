@@ -24,7 +24,7 @@ const SHOWROOMS = [
 ];
 
 async function main() {
-  const hashedPassword = await bcrypt.hash("verkoper123", 10);
+  const hashedPassword = await bcrypt.hash("lab21", 10);
 
   // Fetch source data from Amersfoort
   const sourcePlanogram = await prisma.planogramItem.findMany({ where: { showroomId: SOURCE_ID } });
@@ -88,7 +88,7 @@ async function main() {
   console.log("\n📋 Login credentials:");
   console.log("─".repeat(50));
   for (const sr of SHOWROOMS) {
-    console.log(`  ${sr.email.padEnd(30)} / verkoper123`);
+    console.log(`  ${sr.email.padEnd(30)} / lab21`);
   }
   console.log("\n✅ Setup voltooid.");
 }

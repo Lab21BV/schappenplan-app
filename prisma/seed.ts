@@ -126,19 +126,18 @@ async function main() {
   }
 
   // ── Users ─────────────────────────────────────────────────────────────────
-  const hashedVerkoper = await bcrypt.hash("verkoper123", 10);
-  const hashedHQ = await bcrypt.hash("hoofdkantoor123", 10);
+  const hashedPassword = await bcrypt.hash("lab21", 10);
 
   const verkoper = await prisma.user.upsert({
-    where: { email: "verkoper@lab21.nl" },
-    update: { password: hashedVerkoper },
-    create: { name: "Jan de Vries", email: "verkoper@lab21.nl", password: hashedVerkoper, role: "VERKOPER", showroomId: showroom.id },
+    where: { email: "amersfoort@lab21.nl" },
+    update: { password: hashedPassword },
+    create: { name: "Amersfoort Showroom", email: "amersfoort@lab21.nl", password: hashedPassword, role: "VERKOPER", showroomId: showroom.id },
   });
 
   await prisma.user.upsert({
     where: { email: "hq@lab21.nl" },
-    update: { password: hashedHQ },
-    create: { name: "Hoofdkantoor Beheer", email: "hq@lab21.nl", password: hashedHQ, role: "HOOFDKANTOOR", showroomId: null },
+    update: { password: hashedPassword },
+    create: { name: "Hoofdkantoor Beheer", email: "hq@lab21.nl", password: hashedPassword, role: "HOOFDKANTOOR", showroomId: null },
   });
 
   // ── Display configs (all leaf categories) ─────────────────────────────────

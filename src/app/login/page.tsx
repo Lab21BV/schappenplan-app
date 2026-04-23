@@ -84,10 +84,6 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <div className="mt-6 pt-6 border-t border-gray-100 text-xs text-gray-400 text-center space-y-1">
-          <p><span className="font-medium">Verkoper demo:</span> verkoper@lab21.nl / verkoper123</p>
-          <p><span className="font-medium">Hoofdkantoor:</span> hq@lab21.nl / hoofdkantoor123</p>
-        </div>
       </div>
     </div>
   );

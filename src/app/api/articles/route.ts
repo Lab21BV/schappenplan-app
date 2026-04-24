@@ -55,6 +55,26 @@ export async function POST(req: Request) {
   return NextResponse.json(article);
 }
 
+export async function PATCH(req: Request) {
+  const session = await auth();
+  if (!session || (session.user as any).role !== "HOOFDKANTOOR") {
+    return NextResponse.json({ error: "Verboden" }, { status: 403 });
+  }
+
+  const data = await req.json();
+  if (!data.id) return NextResponse.json({ error: "id vereist" }, { status: 400 });
+
+  const patch: Record<string, unknown> = {};
+  if (typeof data.status === "string") patch.status = data.status;
+  if (typeof data.isActive === "boolean") patch.isActive = data.isActive;
+
+  const article = await prisma.article.update({
+    where: { id: data.id },
+    data: patch,
+  });
+  return NextResponse.json(article);
+}
+
 export async function PUT(req: Request) {
   const session = await auth();
   if (!session || (session.user as any).role !== "HOOFDKANTOOR") {

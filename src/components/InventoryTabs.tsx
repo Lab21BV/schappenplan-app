@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ClipboardList, Plus, AlertCircle } from "lucide-react";
+import { statusBadgeClass } from "@/lib/displayOptions";
 
 // ── shared helpers ────────────────────────────────────────────────────────────
 
@@ -36,7 +37,7 @@ export interface InventoryItem {
   createdAt: string;
   isDisplayMaterial?: boolean;
   displayAfmeting?: string | null;
-  article: { articleNumber: string; articleName: string };
+  article: { articleNumber: string; articleName: string; status?: string };
   createdBy: { name: string };
 }
 
@@ -106,6 +107,7 @@ function InventarisatieTab({
                         {hasLocatie && <th className="text-left px-4 py-2.5 font-medium text-gray-600 text-xs">Locatie</th>}
                         <th className="text-left px-4 py-2.5 font-medium text-gray-600 text-xs">Artikelnummer</th>
                         <th className="text-left px-4 py-2.5 font-medium text-gray-600 text-xs">Artikelnaam</th>
+                        <th className="text-left px-4 py-2.5 font-medium text-gray-600 text-xs">Status</th>
                         <th className="text-right px-4 py-2.5 font-medium text-gray-600 text-xs">Voorraad</th>
                         <th className="text-left px-4 py-2.5 font-medium text-gray-600 text-xs">Notitie</th>
                         <th className="text-left px-4 py-2.5 font-medium text-gray-600 text-xs">Door</th>
@@ -124,12 +126,19 @@ function InventarisatieTab({
                           )}
                           <td className="px-4 py-2.5 font-mono text-xs text-gray-600">{inv.article.articleNumber}</td>
                           <td className="px-4 py-2.5 font-medium text-gray-900">
-                            {inv.article.articleName}
-                            {inv.isDisplayMaterial && (
-                              <span className="ml-2 text-[10px] font-semibold px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 border border-purple-200 align-middle">
-                                Displaymateriaal
-                              </span>
-                            )}
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span>{inv.article.articleName}</span>
+                              {inv.isDisplayMaterial && (
+                                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 border border-purple-200">
+                                  Displaymateriaal
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-4 py-2.5">
+                            <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${statusBadgeClass(inv.article.status ?? "Collectie")}`}>
+                              {inv.article.status ?? "Collectie"}
+                            </span>
                           </td>
                           <td className="px-4 py-2.5 text-right">
                             <span className={`font-semibold px-2 py-0.5 rounded-full text-xs ${

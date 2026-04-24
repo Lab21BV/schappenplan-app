@@ -345,6 +345,7 @@ export default function ArticlesManager({
                         <tr>
                           <th className="text-left px-4 py-2 font-medium text-gray-500 text-xs">Nr.</th>
                           <th className="text-left px-4 py-2 font-medium text-gray-500 text-xs">Naam</th>
+                          <th className="text-left px-4 py-2 font-medium text-gray-500 text-xs">Status</th>
                           <th className="text-left px-4 py-2 font-medium text-gray-500 text-xs">Leverancier</th>
                           <th className="text-left px-4 py-2 font-medium text-gray-500 text-xs">Display</th>
                           <th className="text-right px-4 py-2 font-medium text-gray-500 text-xs">Kostprijs</th>
@@ -358,15 +359,11 @@ export default function ArticlesManager({
                         {items.map((art) => (
                           <tr key={art.id} className={`hover:bg-gray-50 ${!art.isActive ? "opacity-50" : ""}`}>
                             <td className="px-4 py-2.5 font-mono text-xs text-gray-500">{art.articleNumber}</td>
-                            <td className="px-4 py-2.5 font-medium text-gray-900">
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <span>{art.articleName}</span>
-                                {art.status && art.status !== "Collectie" && (
-                                  <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${statusBadgeClass(art.status)}`}>
-                                    {art.status}
-                                  </span>
-                                )}
-                              </div>
+                            <td className="px-4 py-2.5 font-medium text-gray-900">{art.articleName}</td>
+                            <td className="px-4 py-2.5">
+                              <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${statusBadgeClass(art.status ?? "Collectie")}`}>
+                                {art.status ?? "Collectie"}
+                              </span>
                             </td>
                             <td className="px-4 py-2.5 text-gray-600 text-xs">{art.supplierNameReal}</td>
                             <td className="px-4 py-2.5"><DisplayBadges raw={art.displayTypes ?? "[]"} /></td>

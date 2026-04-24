@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { ChevronDown, ChevronRight, Check } from "lucide-react";
 import type { CategoryTree } from "@/types";
-import { getAfmetingOptions, labelForAfmeting, statusBadgeClass, type CategoryLite } from "@/lib/displayOptions";
+import { getAfmetingOptions, labelForAfmeting, statusBadgeClass, ARTICLE_STATUSES, type CategoryLite } from "@/lib/displayOptions";
 
 interface PlanogramItem {
   id: string;
@@ -224,6 +224,41 @@ function AfmetingCell({ itemId, value }: { itemId: string; value: string }) {
   );
 }
 
+function StatusCell({ articleId, value }: { articleId: string; value: string }) {
+  const [val, setVal] = useState(value || "Collectie");
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  async function save(newVal: string) {
+    if (newVal === val) return;
+    setVal(newVal);
+    setSaving(true);
+    await fetch("/api/articles", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: articleId, status: newVal }),
+    });
+    setSaving(false);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 1200);
+  }
+
+  return (
+    <select
+      value={val}
+      onChange={(e) => save(e.target.value)}
+      title="Artikelstatus — wijzigt globaal voor alle showrooms"
+      className={`text-[10px] font-semibold px-1.5 py-0.5 rounded border cursor-pointer ${statusBadgeClass(val)} ${
+        saving ? "opacity-60" : ""
+      } ${saved ? "ring-1 ring-green-500" : ""}`}
+    >
+      {ARTICLE_STATUSES.map((s) => (
+        <option key={s} value={s}>{s}</option>
+      ))}
+    </select>
+  );
+}
+
 function AfmetingSelectCell({
   itemId, value, options, includeCurrent,
 }: {
@@ -328,6 +363,7 @@ function SubafdelingSection({
                     <th className="text-left pb-1.5 pr-4 font-medium w-14">Pos.</th>
                     <th className="text-left pb-1.5 pr-4 font-medium w-28">Artikelnr.</th>
                     <th className="text-left pb-1.5 pr-4 font-medium">Artikelnaam</th>
+                    <th className="text-left pb-1.5 pr-4 font-medium">Status</th>
                     <th className="text-left pb-1.5 pr-4 font-medium">Bord / Strook</th>
                     <th className="text-left pb-1.5 pr-4 font-medium">{terms.afmetingLabel}</th>
                     {isHQ && <th className="text-left pb-1.5 font-medium">Leverancier</th>}
@@ -344,40 +380,50 @@ function SubafdelingSection({
                           </span>
                         </td>
                         <td className="py-2 pr-4 font-mono text-xs text-gray-600">{item.article.articleNumber}</td>
-                        <td className="py-2 pr-4 font-medium text-gray-900">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span>{item.article.articleName}</span>
-                            {item.article.status && item.article.status !== "Collectie" && (
-                              <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${statusBadgeClass(item.article.status)}`}>
-                                {item.article.status}
-                              </span>
-                            )}
-                          </div>
-                        </td>
+                        <td className="py-2 pr-4 font-medium text-gray-900">{item.article.articleName}</td>
                         <td className="py-2 pr-4">
-                          <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${afmetingBadge(item.displayAfmeting)}`}>
-                            {labelForAfmeting(item.displayAfmeting)}
-                          </span>
+                          {isHQ ? (
+                            <StatusCell articleId={item.article.id} value={item.article.status ?? "Collectie"} />
+                          ) : (
+                            <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${statusBadgeClass(item.article.status ?? "Collectie")}`}>
+                              {item.article.status ?? "Collectie"}
+                            </span>
+                          )}
                         </td>
-                        <td className="py-2 pr-4">
-                          {(() => {
-                            const opts = getAfmetingOptions(
-                              { id: cat.id, slug: cat.slug, parentId: cat.parentId },
-                              allCats,
-                              locatie.type === "BOK" ? "BOK" : "WAND",
-                            );
-                            if (isHQ && (terms.afmetingEditable || opts.length > 1)) {
-                              return <AfmetingSelectCell itemId={item.id} value={item.displayAfmeting} options={opts} includeCurrent />;
-                            }
-                            if (isHQ && terms.afmetingEditable) {
-                              return <AfmetingCell itemId={item.id} value={item.displayAfmeting} />;
-                            }
-                            const spec = terms.afmetingDisplay(locatie.type, item.displayAfmeting);
-                            return spec
-                              ? <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${afmetingBadge(item.displayAfmeting)}`}>{labelForAfmeting(spec)}</span>
-                              : <span className="text-xs text-gray-300">—</span>;
-                          })()}
-                        </td>
+                        {(() => {
+                          const opts = getAfmetingOptions(
+                            { id: cat.id, slug: cat.slug, parentId: cat.parentId },
+                            allCats,
+                            locatie.type === "BOK" ? "BOK" : "WAND",
+                          );
+                          const singleOption = opts.length === 1;
+                          const effectiveValue = singleOption ? opts[0].value : item.displayAfmeting;
+                          return (
+                            <>
+                              <td className="py-2 pr-4">
+                                {singleOption ? (
+                                  <span className="text-xs text-gray-300">—</span>
+                                ) : (
+                                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${afmetingBadge(item.displayAfmeting)}`}>
+                                    {labelForAfmeting(item.displayAfmeting)}
+                                  </span>
+                                )}
+                              </td>
+                              <td className="py-2 pr-4">
+                                {isHQ && (terms.afmetingEditable || opts.length > 1) ? (
+                                  <AfmetingSelectCell itemId={item.id} value={effectiveValue} options={opts} includeCurrent />
+                                ) : isHQ && terms.afmetingEditable ? (
+                                  <AfmetingCell itemId={item.id} value={item.displayAfmeting} />
+                                ) : (() => {
+                                  const spec = terms.afmetingDisplay(locatie.type, effectiveValue);
+                                  return spec
+                                    ? <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${afmetingBadge(effectiveValue)}`}>{labelForAfmeting(spec)}</span>
+                                    : <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${afmetingBadge(effectiveValue)}`}>{labelForAfmeting(effectiveValue)}</span>;
+                                })()}
+                              </td>
+                            </>
+                          );
+                        })()}
                         {isHQ && <td className="py-2 text-xs text-gray-500">{item.article.supplierNameReal}</td>}
                       </tr>
                     ))}

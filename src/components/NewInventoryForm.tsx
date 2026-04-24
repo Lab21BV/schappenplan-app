@@ -3,12 +3,14 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Trash2, Save, ChevronDown, ChevronRight } from "lucide-react";
-import { getAfmetingOptions, defaultAfmeting, LOCATIE_OPTIONS, decodeLocatie, encodeLocatie } from "@/lib/displayOptions";
+import { getAfmetingOptions, defaultAfmeting, LOCATIE_OPTIONS, decodeLocatie, encodeLocatie, statusBadgeClass } from "@/lib/displayOptions";
 
 interface Article {
   id: string;
   articleNumber: string;
   articleName: string;
+  status?: string;
+  sellingPrice?: number;
   category: { id: string; name: string };
 }
 
@@ -317,6 +319,8 @@ function AfdelingSection({
               <th className="text-left px-3 py-2 font-medium text-gray-600 text-xs w-16">Bord</th>
               <th className="text-left px-3 py-2 font-medium text-gray-600 text-xs">Display</th>
               <th className="text-left px-3 py-2 font-medium text-gray-600 text-xs">Artikel</th>
+              <th className="text-left px-3 py-2 font-medium text-gray-600 text-xs w-32">Status</th>
+              <th className="text-right px-3 py-2 font-medium text-gray-600 text-xs w-24">Verkoopprijs</th>
               <th className="text-left px-3 py-2 font-medium text-gray-600 text-xs w-20">Voorraad</th>
               <th className="text-left px-3 py-2 font-medium text-gray-600 text-xs w-20" title="Displaymateriaal — niet op schappenplan">Displaymat.</th>
               <th className="text-left px-3 py-2 font-medium text-gray-600 text-xs">Notitie</th>
@@ -379,6 +383,22 @@ function AfdelingSection({
                     ))}
                   </select>
                 </td>
+                {(() => {
+                  const selected = allArticles.find((a) => a.id === line.articleId);
+                  const status = selected?.status ?? "Collectie";
+                  return (
+                    <>
+                      <td className="px-3 py-1.5">
+                        <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${statusBadgeClass(status)}`}>
+                          {status}
+                        </span>
+                      </td>
+                      <td className="px-3 py-1.5 text-right text-xs text-gray-700">
+                        {typeof selected?.sellingPrice === "number" ? `€ ${selected.sellingPrice.toFixed(2)}` : "—"}
+                      </td>
+                    </>
+                  );
+                })()}
                 <td className="px-3 py-1.5">
                   <input
                     type="number"

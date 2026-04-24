@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ChevronDown, ChevronRight, Check } from "lucide-react";
 import type { CategoryTree } from "@/types";
+import { getAfmetingOptions, labelForAfmeting, statusBadgeClass, type CategoryLite } from "@/lib/displayOptions";
 
 interface PlanogramItem {
   id: string;
@@ -19,6 +20,7 @@ interface PlanogramItem {
     supplierNameAnonymized: string;
     supplierNameReal: string;
     priorityScore: number;
+    status?: string;
   };
 }
 
@@ -180,6 +182,18 @@ function getLeafCategories(tree: CategoryTree[]): CategoryTree[] {
   return leaves;
 }
 
+function flattenTree(tree: CategoryTree[]): CategoryLite[] {
+  const out: CategoryLite[] = [];
+  const walk = (nodes: CategoryTree[]) => {
+    for (const n of nodes) {
+      out.push({ id: n.id, slug: n.slug, parentId: n.parentId });
+      walk(n.children);
+    }
+  };
+  walk(tree);
+  return out;
+}
+
 function AfmetingCell({ itemId, value }: { itemId: string; value: string }) {
   const [val, setVal] = useState(value);
   const [saving, setSaving] = useState(false);
@@ -210,10 +224,51 @@ function AfmetingCell({ itemId, value }: { itemId: string; value: string }) {
   );
 }
 
-function SubafdelingSection({
-  cat, catNr, items, config, isHQ, showroomId,
+function AfmetingSelectCell({
+  itemId, value, options, includeCurrent,
 }: {
-  cat: CategoryTree; catNr: number; items: PlanogramItem[];
+  itemId: string;
+  value: string;
+  options: { value: string; label: string }[];
+  includeCurrent?: boolean;
+}) {
+  const [val, setVal] = useState(value);
+  const [saving, setSaving] = useState(false);
+
+  async function save(newVal: string) {
+    if (newVal === value) return;
+    setSaving(true);
+    await fetch(`/api/planogram?id=${itemId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ displayAfmeting: newVal }),
+    });
+    setSaving(false);
+  }
+
+  const hasCurrent = options.some((o) => o.value === val);
+  return (
+    <select
+      value={val}
+      onChange={(e) => { setVal(e.target.value); save(e.target.value); }}
+      className={`text-xs border rounded px-2 py-0.5 focus:outline-none focus:ring-1 focus:ring-blue-400 ${
+        saving ? "border-blue-300 bg-blue-50" : "border-gray-200 bg-white"
+      }`}
+    >
+      {includeCurrent && !hasCurrent && val && (
+        <option value={val}>{labelForAfmeting(val)}</option>
+      )}
+      {options.map((o) => (
+        <option key={o.value} value={o.value}>{o.label}</option>
+      ))}
+    </select>
+  );
+}
+
+function SubafdelingSection({
+  cat, allCats, catNr, items, config, isHQ, showroomId,
+}: {
+  cat: CategoryTree; allCats: CategoryLite[]; catNr: number; items: PlanogramItem[];
   config?: DisplayConfig; isHQ: boolean; showroomId: string;
 }) {
   const [open, setOpen] = useState(true);
@@ -289,25 +344,39 @@ function SubafdelingSection({
                           </span>
                         </td>
                         <td className="py-2 pr-4 font-mono text-xs text-gray-600">{item.article.articleNumber}</td>
-                        <td className="py-2 pr-4 font-medium text-gray-900">{item.article.articleName}</td>
+                        <td className="py-2 pr-4 font-medium text-gray-900">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span>{item.article.articleName}</span>
+                            {item.article.status && item.article.status !== "Collectie" && (
+                              <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${statusBadgeClass(item.article.status)}`}>
+                                {item.article.status}
+                              </span>
+                            )}
+                          </div>
+                        </td>
                         <td className="py-2 pr-4">
                           <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${afmetingBadge(item.displayAfmeting)}`}>
-                            {item.displayAfmeting === "120x60" ? "Bord 120×60"
-                              : item.displayAfmeting === "100x60" ? "Bord 100×60"
-                              : item.displayAfmeting === "STROK" ? "Strook"
-                              : item.displayAfmeting || "—"}
+                            {labelForAfmeting(item.displayAfmeting)}
                           </span>
                         </td>
                         <td className="py-2 pr-4">
-                          {isHQ && terms.afmetingEditable
-                            ? <AfmetingCell itemId={item.id} value={item.displayAfmeting} />
-                            : (() => {
-                                const spec = terms.afmetingDisplay(locatie.type, item.displayAfmeting);
-                                return spec
-                                  ? <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${afmetingBadge(item.displayAfmeting)}`}>{spec}</span>
-                                  : <span className="text-xs text-gray-300">—</span>;
-                              })()
-                          }
+                          {(() => {
+                            const opts = getAfmetingOptions(
+                              { id: cat.id, slug: cat.slug, parentId: cat.parentId },
+                              allCats,
+                              locatie.type === "BOK" ? "BOK" : "WAND",
+                            );
+                            if (isHQ && (terms.afmetingEditable || opts.length > 1)) {
+                              return <AfmetingSelectCell itemId={item.id} value={item.displayAfmeting} options={opts} includeCurrent />;
+                            }
+                            if (isHQ && terms.afmetingEditable) {
+                              return <AfmetingCell itemId={item.id} value={item.displayAfmeting} />;
+                            }
+                            const spec = terms.afmetingDisplay(locatie.type, item.displayAfmeting);
+                            return spec
+                              ? <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${afmetingBadge(item.displayAfmeting)}`}>{labelForAfmeting(spec)}</span>
+                              : <span className="text-xs text-gray-300">—</span>;
+                          })()}
                         </td>
                         {isHQ && <td className="py-2 text-xs text-gray-500">{item.article.supplierNameReal}</td>}
                       </tr>
@@ -323,9 +392,9 @@ function SubafdelingSection({
 }
 
 function RootSection({
-  root, planogramItems, displayConfigs, isHQ, showroomId,
+  root, allCats, planogramItems, displayConfigs, isHQ, showroomId,
 }: {
-  root: CategoryTree; planogramItems: PlanogramItem[];
+  root: CategoryTree; allCats: CategoryLite[]; planogramItems: PlanogramItem[];
   displayConfigs: DisplayConfig[]; isHQ: boolean; showroomId: string;
 }) {
   const [open, setOpen] = useState(true);
@@ -354,6 +423,7 @@ function RootSection({
               <SubafdelingSection
                 key={cat.id}
                 cat={cat}
+                allCats={allCats}
                 catNr={idx + 1}
                 items={catItems}
                 config={config}
@@ -369,12 +439,14 @@ function RootSection({
 }
 
 export default function PlanogramView({ showroomId, categoryTree, planogramItems, displayConfigs, isHQ }: Props) {
+  const allCats = flattenTree(categoryTree);
   return (
     <div className="space-y-5">
       {categoryTree.map((root) => (
         <RootSection
           key={root.id}
           root={root}
+          allCats={allCats}
           planogramItems={planogramItems}
           displayConfigs={displayConfigs}
           isHQ={isHQ}

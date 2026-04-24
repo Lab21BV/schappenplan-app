@@ -83,6 +83,8 @@ export default async function InventoryPage({
       stock: inv.stock,
       notes: inv.notes,
       createdAt: inv.createdAt.toISOString(),
+      isDisplayMaterial: (inv as any).isDisplayMaterial ?? false,
+      displayAfmeting: inv.displayAfmeting,
       article: { articleNumber: inv.article.articleNumber, articleName: inv.article.articleName },
       createdBy: { name: inv.createdBy.name },
     });
@@ -105,7 +107,9 @@ export default async function InventoryPage({
 
   // ── Verschil ─────────────────────────────────────────────────────────────
   const invKeys = new Set(
-    inventories.filter((i) => i.locatieType).map((i) => `${i.articleId}|${i.locatieType}|${i.locatieNummer}`)
+    inventories
+      .filter((i) => i.locatieType && !(i as any).isDisplayMaterial)
+      .map((i) => `${i.articleId}|${i.locatieType}|${i.locatieNummer}`)
   );
   const planKeys = new Set(
     planogramItems.map((p) => `${p.articleId}|${p.locatieType}|${p.locatieNummer}`)
@@ -135,6 +139,7 @@ export default async function InventoryPage({
   const extraRootMap: Record<string, VerschilRoot> = {};
   for (const inv of inventories) {
     if (!inv.locatieType) continue;
+    if ((inv as any).isDisplayMaterial) continue; // displaymateriaal hoort niet op schappenplan
     if (!planKeys.has(`${inv.articleId}|${inv.locatieType}|${inv.locatieNummer}`)) {
       const leafCatId = inv.categoryId ?? inv.article.category.id;
       const root = findRoot(leafCatId);

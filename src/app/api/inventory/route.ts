@@ -22,6 +22,7 @@ export async function POST(req: Request) {
       bordNummer: item.bordNummer ? parseInt(item.bordNummer) : null,
       displayAfmeting: item.displayAfmeting || null,
       stock: item.stock,
+      isDisplayMaterial: !!item.isDisplayMaterial,
       notes: item.notes || null,
       createdById: userId,
     })),

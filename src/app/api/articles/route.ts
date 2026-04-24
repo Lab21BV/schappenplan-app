@@ -48,6 +48,7 @@ export async function POST(req: Request) {
       priorityScore: parseFloat(data.priorityScore) || 0,
       categoryId: data.categoryId,
       displayTypes: data.displayTypes ?? "[]",
+      status: data.status ?? "Collectie",
     },
   });
 
@@ -75,6 +76,7 @@ export async function PUT(req: Request) {
       categoryId: data.categoryId,
       isActive: data.isActive,
       displayTypes: data.displayTypes ?? "[]",
+      status: data.status ?? "Collectie",
     },
   });
 

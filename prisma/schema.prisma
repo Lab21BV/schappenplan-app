@@ -63,6 +63,7 @@ model Article {
   categoryId             String
   displayTypes           String   @default("[]") // JSON array of display types
   isActive               Boolean  @default(true)
+  status                 String   @default("Collectie") // Collectie | Uitlopend | Tijdelijk niet leverbaar
   createdAt              DateTime @default(now())
 
   category       Category        @relation(fields: [categoryId], references: [id])
@@ -127,8 +128,9 @@ model Inventory {
   locatieType      String?   // WAND | BOK | STROK
   locatieNummer    Int?      // wand nr or bok nr
   bordNummer       Int?      // board position within bok (1-10)
-  displayAfmeting  String?   // strook | 100x60 | 120x60
+  displayAfmeting  String?   // strook | 100x60 | 120x60 | sample | kapstaal | showbaan | waaier | staal-19x21 | traprenovatiedisplay
   stock            Int       @default(0)
+  isDisplayMaterial Boolean  @default(false) // display material dat NIET op het schappenplan hoort
   notes          String?
   createdById    String
   createdAt      DateTime  @default(now())

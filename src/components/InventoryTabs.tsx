@@ -34,6 +34,8 @@ export interface InventoryItem {
   stock: number;
   notes: string | null;
   createdAt: string;
+  isDisplayMaterial?: boolean;
+  displayAfmeting?: string | null;
   article: { articleNumber: string; articleName: string };
   createdBy: { name: string };
 }
@@ -121,7 +123,14 @@ function InventarisatieTab({
                             </td>
                           )}
                           <td className="px-4 py-2.5 font-mono text-xs text-gray-600">{inv.article.articleNumber}</td>
-                          <td className="px-4 py-2.5 font-medium text-gray-900">{inv.article.articleName}</td>
+                          <td className="px-4 py-2.5 font-medium text-gray-900">
+                            {inv.article.articleName}
+                            {inv.isDisplayMaterial && (
+                              <span className="ml-2 text-[10px] font-semibold px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 border border-purple-200 align-middle">
+                                Displaymateriaal
+                              </span>
+                            )}
+                          </td>
                           <td className="px-4 py-2.5 text-right">
                             <span className={`font-semibold px-2 py-0.5 rounded-full text-xs ${
                               inv.stock > 10 ? "bg-green-100 text-green-700" :

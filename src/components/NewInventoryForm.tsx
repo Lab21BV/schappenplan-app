@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Trash2, Save, ChevronDown, ChevronRight } from "lucide-react";
+import { getAfmetingOptions, defaultAfmeting } from "@/lib/displayOptions";
 
 interface Article {
   id: string;
@@ -14,6 +15,7 @@ interface Article {
 interface Category {
   id: string;
   name: string;
+  slug: string;
   parentId: string | null;
   order: number;
 }
@@ -37,6 +39,7 @@ interface InventoryLine {
   articleId: string;
   stock: string;
   notes: string;
+  isDisplayMaterial: boolean;
 }
 
 let lineCounter = 1;
@@ -79,11 +82,14 @@ export default function NewInventoryForm({
   const firstArticle = articles[0]?.id ?? "";
 
   const [showroomId, setShowroomId] = useState(defaultShowroomId);
+  const firstCat = leafCats[0];
+  const initWandAfm = firstCat ? defaultAfmeting(firstCat, categories, "WAND") : "strook";
+  const initBokAfm = firstCat ? defaultAfmeting(firstCat, categories, "BOK") : "120x60";
   const [lines, setLines] = useState<InventoryLine[]>([
-    { id: lineCounter++, categoryId: firstCatId, locatieType: "WAND", locatieNummer: "1", bordNummer: "", displayAfmeting: "strook", articleId: firstArticle, stock: "0", notes: "" },
-    { id: lineCounter++, categoryId: firstCatId, locatieType: "BOK",  locatieNummer: "1", bordNummer: "1", displayAfmeting: "120x60", articleId: firstArticle, stock: "0", notes: "" },
-    { id: lineCounter++, categoryId: firstCatId, locatieType: "BOK",  locatieNummer: "1", bordNummer: "2", displayAfmeting: "120x60", articleId: firstArticle, stock: "0", notes: "" },
-    { id: lineCounter++, categoryId: firstCatId, locatieType: "BOK",  locatieNummer: "1", bordNummer: "3", displayAfmeting: "120x60", articleId: firstArticle, stock: "0", notes: "" },
+    { id: lineCounter++, categoryId: firstCatId, locatieType: "WAND", locatieNummer: "1", bordNummer: "", displayAfmeting: initWandAfm, articleId: firstArticle, stock: "0", notes: "", isDisplayMaterial: false },
+    { id: lineCounter++, categoryId: firstCatId, locatieType: "BOK",  locatieNummer: "1", bordNummer: "1", displayAfmeting: initBokAfm, articleId: firstArticle, stock: "0", notes: "", isDisplayMaterial: false },
+    { id: lineCounter++, categoryId: firstCatId, locatieType: "BOK",  locatieNummer: "1", bordNummer: "2", displayAfmeting: initBokAfm, articleId: firstArticle, stock: "0", notes: "", isDisplayMaterial: false },
+    { id: lineCounter++, categoryId: firstCatId, locatieType: "BOK",  locatieNummer: "1", bordNummer: "3", displayAfmeting: initBokAfm, articleId: firstArticle, stock: "0", notes: "", isDisplayMaterial: false },
   ]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -99,16 +105,18 @@ export default function NewInventoryForm({
 
   function addLine(categoryId?: string) {
     const catId = categoryId ?? firstCatId;
+    const cat = leafCats.find((c) => c.id === catId);
     setLines([...lines, {
       id: lineCounter++,
       categoryId: catId,
       locatieType: "WAND",
       locatieNummer: "1",
       bordNummer: "",
-      displayAfmeting: "strook",
+      displayAfmeting: cat ? defaultAfmeting(cat, categories, "WAND") : "strook",
       articleId: firstArticle,
       stock: "0",
       notes: "",
+      isDisplayMaterial: false,
     }]);
   }
 
@@ -116,14 +124,22 @@ export default function NewInventoryForm({
     setLines(lines.filter((l) => l.id !== id));
   }
 
-  function updateLine(id: number, field: keyof InventoryLine, value: string) {
+  function updateLine(id: number, field: keyof InventoryLine, value: string | boolean) {
     setLines(lines.map((l) => {
       if (l.id !== id) return l;
-      const updated = { ...l, [field]: value };
+      const updated = { ...l, [field]: value } as InventoryLine;
       if (field === "locatieType") {
+        const cat = leafCats.find((c) => c.id === updated.categoryId);
         if (value !== "BOK") updated.bordNummer = "";
-        if (value === "BOK") updated.displayAfmeting = "120x60";
-        if (value === "WAND") updated.displayAfmeting = "strook";
+        if (cat) {
+          updated.displayAfmeting = defaultAfmeting(cat, categories, value as "WAND" | "BOK");
+        }
+      }
+      if (field === "categoryId") {
+        const cat = leafCats.find((c) => c.id === value);
+        if (cat) {
+          updated.displayAfmeting = defaultAfmeting(cat, categories, updated.locatieType);
+        }
       }
       return updated;
     }));
@@ -154,6 +170,7 @@ export default function NewInventoryForm({
             displayAfmeting: l.displayAfmeting || null,
             stock: parseInt(l.stock) || 0,
             notes: l.notes,
+            isDisplayMaterial: l.isDisplayMaterial,
           })),
         }),
       });
@@ -191,6 +208,7 @@ export default function NewInventoryForm({
             <AfdelingSection
               key={cat.id}
               cat={cat}
+              allCats={categories}
               catNr={catNr}
               lines={catLines}
               config={config}
@@ -237,9 +255,10 @@ export default function NewInventoryForm({
 }
 
 function AfdelingSection({
-  cat, catNr, lines, config, articles, allArticles, onAddLine, onRemoveLine, onUpdateLine,
+  cat, allCats, catNr, lines, config, articles, allArticles, onAddLine, onRemoveLine, onUpdateLine,
 }: {
   cat: Category;
+  allCats: Category[];
   catNr: number;
   lines: InventoryLine[];
   config?: DisplayConfig;
@@ -247,7 +266,7 @@ function AfdelingSection({
   allArticles: Article[];
   onAddLine: () => void;
   onRemoveLine: (id: number) => void;
-  onUpdateLine: (id: number, field: keyof InventoryLine, value: string) => void;
+  onUpdateLine: (id: number, field: keyof InventoryLine, value: string | boolean) => void;
 }) {
   const [open, setOpen] = useState(true);
   const articleOptions = articles.length > 0 ? articles : allArticles;
@@ -293,6 +312,7 @@ function AfdelingSection({
               <th className="text-left px-3 py-2 font-medium text-gray-600 text-xs">Display</th>
               <th className="text-left px-3 py-2 font-medium text-gray-600 text-xs">Artikel</th>
               <th className="text-left px-3 py-2 font-medium text-gray-600 text-xs w-20">Voorraad</th>
+              <th className="text-left px-3 py-2 font-medium text-gray-600 text-xs w-20" title="Displaymateriaal — niet op schappenplan">Displaymat.</th>
               <th className="text-left px-3 py-2 font-medium text-gray-600 text-xs">Notitie</th>
               <th className="w-8" />
             </tr>
@@ -335,18 +355,20 @@ function AfdelingSection({
                   )}
                 </td>
                 <td className="px-3 py-1.5">
-                  {line.locatieType === "WAND" ? (
-                    <select
-                      value={line.displayAfmeting}
-                      onChange={(e) => onUpdateLine(line.id, "displayAfmeting", e.target.value)}
-                      className="border border-gray-200 rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
-                    >
-                      <option value="strook">Strook</option>
-                      <option value="100x60">Bord 100×60</option>
-                    </select>
-                  ) : (
-                    <span className="text-xs text-gray-500 px-1">Bord 120×60</span>
-                  )}
+                  {(() => {
+                    const opts = getAfmetingOptions(cat, allCats, line.locatieType);
+                    return (
+                      <select
+                        value={line.displayAfmeting}
+                        onChange={(e) => onUpdateLine(line.id, "displayAfmeting", e.target.value)}
+                        className="border border-gray-200 rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      >
+                        {opts.map((o) => (
+                          <option key={o.value} value={o.value}>{o.label}</option>
+                        ))}
+                      </select>
+                    );
+                  })()}
                 </td>
                 <td className="px-3 py-1.5">
                   <select
@@ -366,6 +388,15 @@ function AfdelingSection({
                     value={line.stock}
                     onChange={(e) => onUpdateLine(line.id, "stock", e.target.value)}
                     className="w-16 border border-gray-200 rounded px-2 py-1 text-xs text-right focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </td>
+                <td className="px-3 py-1.5 text-center">
+                  <input
+                    type="checkbox"
+                    checked={line.isDisplayMaterial}
+                    onChange={(e) => onUpdateLine(line.id, "isDisplayMaterial", e.target.checked)}
+                    title="Alleen displaymateriaal — niet op schappenplan"
+                    className="w-4 h-4 accent-blue-700"
                   />
                 </td>
                 <td className="px-3 py-1.5">

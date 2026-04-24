@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Plus, Edit2, Search, TrendingUp, Upload } from "lucide-react";
 import ArticleImport from "./ArticleImport";
+import { ARTICLE_STATUSES, statusBadgeClass } from "@/lib/displayOptions";
 
 const DISPLAY_OPTIONS = [
   { value: "strook", label: "Strook" },
@@ -22,6 +23,7 @@ interface Article {
   grossMargin: number;
   priorityScore: number;
   isActive: boolean;
+  status?: string;
   categoryId: string;
   displayTypes: string;
   category: { id: string; name: string };
@@ -45,6 +47,7 @@ const EMPTY_FORM = {
   priorityScore: "",
   categoryId: "",
   isActive: true,
+  status: "Collectie",
   displayTypes: [] as string[],
   customDisplay: "",
 };
@@ -137,6 +140,7 @@ export default function ArticlesManager({
       priorityScore: String(a.priorityScore),
       categoryId: a.categoryId,
       isActive: a.isActive as any,
+      status: a.status ?? "Collectie",
       displayTypes: parseDisplayTypes(a.displayTypes),
       customDisplay: "",
     });
@@ -269,6 +273,18 @@ export default function ArticlesManager({
               />
               <label htmlFor="isActive" className="text-sm text-gray-700">Actief</label>
             </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Artikelstatus</label>
+              <select
+                value={form.status}
+                onChange={(e) => setForm({ ...form, status: e.target.value })}
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                {ARTICLE_STATUSES.map((s) => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
+            </div>
             <div className="col-span-2">
               <label className="block text-xs font-medium text-gray-600 mb-2">Display</label>
               <div className="flex flex-wrap gap-2">
@@ -342,7 +358,16 @@ export default function ArticlesManager({
                         {items.map((art) => (
                           <tr key={art.id} className={`hover:bg-gray-50 ${!art.isActive ? "opacity-50" : ""}`}>
                             <td className="px-4 py-2.5 font-mono text-xs text-gray-500">{art.articleNumber}</td>
-                            <td className="px-4 py-2.5 font-medium text-gray-900">{art.articleName}</td>
+                            <td className="px-4 py-2.5 font-medium text-gray-900">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span>{art.articleName}</span>
+                                {art.status && art.status !== "Collectie" && (
+                                  <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${statusBadgeClass(art.status)}`}>
+                                    {art.status}
+                                  </span>
+                                )}
+                              </div>
+                            </td>
                             <td className="px-4 py-2.5 text-gray-600 text-xs">{art.supplierNameReal}</td>
                             <td className="px-4 py-2.5"><DisplayBadges raw={art.displayTypes ?? "[]"} /></td>
                             <td className="px-4 py-2.5 text-right text-gray-700 text-xs">€ {art.costPrice.toFixed(2)}</td>

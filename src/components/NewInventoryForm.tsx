@@ -50,19 +50,6 @@ function getLeafCategories(categories: Category[]) {
   return categories.filter((c) => !categories.some((cc) => cc.parentId === c.id));
 }
 
-function getCategoryNummer(cat: Category, allCats: Category[]): number {
-  const tops = allCats.filter((c) => c.parentId === null).sort((a, b) => a.order - b.order);
-  const idx = tops.findIndex((c) => c.id === cat.id);
-  if (idx !== -1) return idx + 1;
-  // for leaf, find parent top index + sub index
-  let cur: Category | undefined = cat;
-  while (cur?.parentId) cur = allCats.find((c) => c.id === cur!.parentId);
-  const topIdx = tops.findIndex((c) => c.id === cur?.id);
-  const siblings = allCats.filter((c) => c.parentId === cur?.id).sort((a, b) => a.order - b.order);
-  const subIdx = siblings.findIndex((c) => c.id === cat.id);
-  return (topIdx + 1) * 100 + (subIdx + 1);
-}
-
 export default function NewInventoryForm({
   articles,
   showrooms,
@@ -95,15 +82,6 @@ export default function NewInventoryForm({
   ]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-
-  // Group lines by categoryId for display
-  const grouped = leafCats
-    .map((cat, catIdx) => ({
-      cat,
-      catNr: catIdx + 1,
-      lines: lines.filter((l) => l.categoryId === cat.id),
-    }))
-    .filter((g) => g.lines.length > 0);
 
   function addLine(categoryId?: string) {
     const catId = categoryId ?? firstCatId;
@@ -142,7 +120,7 @@ export default function NewInventoryForm({
           }
         }
       } else {
-        (updated as any)[field] = value;
+        Object.assign(updated, { [field]: value });
         if (field === "categoryId") {
           const cat = leafCats.find((c) => c.id === value);
           if (cat) {
@@ -185,8 +163,8 @@ export default function NewInventoryForm({
       });
       if (!res.ok) throw new Error(await res.text());
       router.push("/dashboard/inventory");
-    } catch (e: any) {
-      setError(e.message || "Er is een fout opgetreden");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Er is een fout opgetreden");
       setSaving(false);
     }
   }

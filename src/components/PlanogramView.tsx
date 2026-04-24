@@ -194,36 +194,6 @@ function flattenTree(tree: CategoryTree[]): CategoryLite[] {
   return out;
 }
 
-function AfmetingCell({ itemId, value }: { itemId: string; value: string }) {
-  const [val, setVal] = useState(value);
-  const [saving, setSaving] = useState(false);
-
-  async function save(newVal: string) {
-    if (newVal === value) return;
-    setSaving(true);
-    await fetch(`/api/planogram?id=${itemId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ displayAfmeting: newVal }),
-    });
-    setSaving(false);
-  }
-
-  return (
-    <input
-      type="text"
-      value={val}
-      onChange={(e) => setVal(e.target.value)}
-      onBlur={(e) => save(e.target.value)}
-      onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
-      placeholder="—"
-      className={`w-28 text-xs border rounded px-2 py-0.5 focus:outline-none focus:ring-1 focus:ring-blue-400 ${
-        saving ? "border-blue-300 bg-blue-50" : "border-gray-200 bg-white"
-      }`}
-    />
-  );
-}
-
 function StatusCell({ articleId, value }: { articleId: string; value: string }) {
   const [val, setVal] = useState(value || "Collectie");
   const [saving, setSaving] = useState(false);
@@ -412,14 +382,11 @@ function SubafdelingSection({
                               <td className="py-2 pr-4">
                                 {isHQ && (terms.afmetingEditable || opts.length > 1) ? (
                                   <AfmetingSelectCell itemId={item.id} value={effectiveValue} options={opts} includeCurrent />
-                                ) : isHQ && terms.afmetingEditable ? (
-                                  <AfmetingCell itemId={item.id} value={item.displayAfmeting} />
-                                ) : (() => {
-                                  const spec = terms.afmetingDisplay(locatie.type, effectiveValue);
-                                  return spec
-                                    ? <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${afmetingBadge(effectiveValue)}`}>{labelForAfmeting(spec)}</span>
-                                    : <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${afmetingBadge(effectiveValue)}`}>{labelForAfmeting(effectiveValue)}</span>;
-                                })()}
+                                ) : (
+                                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${afmetingBadge(effectiveValue)}`}>
+                                    {labelForAfmeting(terms.afmetingDisplay(locatie.type, effectiveValue) ?? effectiveValue)}
+                                  </span>
+                                )}
                               </td>
                             </>
                           );

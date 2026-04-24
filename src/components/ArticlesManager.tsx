@@ -139,7 +139,7 @@ export default function ArticlesManager({
       grossMargin: String(a.grossMargin),
       priorityScore: String(a.priorityScore),
       categoryId: a.categoryId,
-      isActive: a.isActive as any,
+      isActive: a.isActive,
       status: a.status ?? "Collectie",
       displayTypes: parseDisplayTypes(a.displayTypes),
       customDisplay: "",
@@ -233,7 +233,7 @@ export default function ArticlesManager({
                 <input
                   type={type ?? "text"}
                   disabled={disabled}
-                  value={(form as any)[key]}
+                  value={(form as Record<string, unknown>)[key] as string}
                   onChange={(e) => setForm({ ...form, [key]: e.target.value })}
                   className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50"
                 />
@@ -267,8 +267,8 @@ export default function ArticlesManager({
               <input
                 type="checkbox"
                 id="isActive"
-                checked={form.isActive as any}
-                onChange={(e) => setForm({ ...form, isActive: e.target.checked as any })}
+                checked={form.isActive}
+                onChange={(e) => setForm({ ...form, isActive: e.target.checked })}
                 className="w-4 h-4"
               />
               <label htmlFor="isActive" className="text-sm text-gray-700">Actief</label>

@@ -24,6 +24,47 @@ function isUnderRaamdecoratie(cat: CategoryLite, all: CategoryLite[] | undefined
   return false;
 }
 
+export type LocatieType = "WAND" | "BOK" | "STROK";
+
+export interface LocatieOption {
+  value: string;
+  label: string;
+  type: LocatieType;
+  nummer: number;
+}
+
+export const LOCATIE_OPTIONS: LocatieOption[] = [
+  { value: "WAND-1", label: "Wand boven",    type: "WAND",  nummer: 1 },
+  { value: "WAND-2", label: "Wand onder",    type: "WAND",  nummer: 2 },
+  { value: "BOK-1",  label: "Bok 1",          type: "BOK",   nummer: 1 },
+  { value: "BOK-2",  label: "Bok 2",          type: "BOK",   nummer: 2 },
+  { value: "BOK-3",  label: "Bok 3",          type: "BOK",   nummer: 3 },
+  { value: "BOK-4",  label: "Bok 4",          type: "BOK",   nummer: 4 },
+  { value: "BOK-5",  label: "Bok 5",          type: "BOK",   nummer: 5 },
+  { value: "BOK-6",  label: "Bok 6",          type: "BOK",   nummer: 6 },
+  { value: "BOK-7",  label: "Bok 7",          type: "BOK",   nummer: 7 },
+  { value: "BOK-8",  label: "Bok 8",          type: "BOK",   nummer: 8 },
+  { value: "STROK-1", label: "Strook boven",  type: "STROK", nummer: 1 },
+  { value: "STROK-2", label: "Strook midden", type: "STROK", nummer: 2 },
+  { value: "STROK-3", label: "Strook onder",  type: "STROK", nummer: 3 },
+];
+
+export function encodeLocatie(type: string | null | undefined, nummer: number | null | undefined): string {
+  if (!type || !nummer) return "";
+  return `${type}-${nummer}`;
+}
+
+export function decodeLocatie(value: string): { type: LocatieType; nummer: number } | null {
+  const opt = LOCATIE_OPTIONS.find((o) => o.value === value);
+  return opt ? { type: opt.type, nummer: opt.nummer } : null;
+}
+
+export function labelForLocatie(type: string | null | undefined, nummer: number | null | undefined): string {
+  if (!type) return "—";
+  const opt = LOCATIE_OPTIONS.find((o) => o.type === type && o.nummer === nummer);
+  return opt ? opt.label : `${type} ${nummer ?? ""}`.trim();
+}
+
 export const ARTICLE_STATUSES = ["Collectie", "Uitlopend", "Tijdelijk niet leverbaar"] as const;
 export type ArticleStatus = (typeof ARTICLE_STATUSES)[number];
 

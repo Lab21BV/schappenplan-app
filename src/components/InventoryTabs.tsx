@@ -37,7 +37,7 @@ export interface InventoryItem {
   createdAt: string;
   isDisplayMaterial?: boolean;
   displayAfmeting?: string | null;
-  article: { articleNumber: string; articleName: string; status?: string };
+  article: { articleNumber: string; articleName: string; status?: string; sellingPrice?: number };
   createdBy: { name: string };
 }
 
@@ -108,6 +108,7 @@ function InventarisatieTab({
                         <th className="text-left px-4 py-2.5 font-medium text-gray-600 text-xs">Artikelnummer</th>
                         <th className="text-left px-4 py-2.5 font-medium text-gray-600 text-xs">Artikelnaam</th>
                         <th className="text-left px-4 py-2.5 font-medium text-gray-600 text-xs">Status</th>
+                        <th className="text-right px-4 py-2.5 font-medium text-gray-600 text-xs">Verkoopprijs</th>
                         <th className="text-right px-4 py-2.5 font-medium text-gray-600 text-xs">Voorraad</th>
                         <th className="text-left px-4 py-2.5 font-medium text-gray-600 text-xs">Notitie</th>
                         <th className="text-left px-4 py-2.5 font-medium text-gray-600 text-xs">Door</th>
@@ -139,6 +140,9 @@ function InventarisatieTab({
                             <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${statusBadgeClass(inv.article.status ?? "Collectie")}`}>
                               {inv.article.status ?? "Collectie"}
                             </span>
+                          </td>
+                          <td className="px-4 py-2.5 text-right text-xs text-gray-700">
+                            {typeof inv.article.sellingPrice === "number" ? `€ ${inv.article.sellingPrice.toFixed(2)}` : "—"}
                           </td>
                           <td className="px-4 py-2.5 text-right">
                             <span className={`font-semibold px-2 py-0.5 rounded-full text-xs ${

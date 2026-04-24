@@ -85,7 +85,7 @@ export default async function InventoryPage({
       createdAt: inv.createdAt.toISOString(),
       isDisplayMaterial: (inv as any).isDisplayMaterial ?? false,
       displayAfmeting: inv.displayAfmeting,
-      article: { articleNumber: inv.article.articleNumber, articleName: inv.article.articleName, status: (inv.article as any).status },
+      article: { articleNumber: inv.article.articleNumber, articleName: inv.article.articleName, status: (inv.article as any).status, sellingPrice: inv.article.sellingPrice },
       createdBy: { name: inv.createdBy.name },
     });
   }

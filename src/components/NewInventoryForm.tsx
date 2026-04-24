@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Trash2, Save, ChevronDown, ChevronRight } from "lucide-react";
-import { getAfmetingOptions, defaultAfmeting } from "@/lib/displayOptions";
+import { getAfmetingOptions, defaultAfmeting, LOCATIE_OPTIONS, decodeLocatie, encodeLocatie } from "@/lib/displayOptions";
 
 interface Article {
   id: string;
@@ -32,7 +32,7 @@ interface Showroom { id: string; name: string }
 interface InventoryLine {
   id: number;
   categoryId: string;
-  locatieType: "WAND" | "BOK";
+  locatieType: "WAND" | "BOK" | "STROK";
   locatieNummer: string;
   bordNummer: string;
   displayAfmeting: string;
@@ -124,21 +124,28 @@ export default function NewInventoryForm({
     setLines(lines.filter((l) => l.id !== id));
   }
 
-  function updateLine(id: number, field: keyof InventoryLine, value: string | boolean) {
+  function updateLine(id: number, field: keyof InventoryLine | "locatie", value: string | boolean) {
     setLines(lines.map((l) => {
       if (l.id !== id) return l;
-      const updated = { ...l, [field]: value } as InventoryLine;
-      if (field === "locatieType") {
-        const cat = leafCats.find((c) => c.id === updated.categoryId);
-        if (value !== "BOK") updated.bordNummer = "";
-        if (cat) {
-          updated.displayAfmeting = defaultAfmeting(cat, categories, value as "WAND" | "BOK");
+      const updated = { ...l } as InventoryLine;
+      if (field === "locatie") {
+        const decoded = decodeLocatie(String(value));
+        if (decoded) {
+          updated.locatieType = decoded.type;
+          updated.locatieNummer = String(decoded.nummer);
+          if (decoded.type !== "BOK") updated.bordNummer = "";
+          const cat = leafCats.find((c) => c.id === updated.categoryId);
+          if (cat) {
+            updated.displayAfmeting = defaultAfmeting(cat, categories, decoded.type === "BOK" ? "BOK" : "WAND");
+          }
         }
-      }
-      if (field === "categoryId") {
-        const cat = leafCats.find((c) => c.id === value);
-        if (cat) {
-          updated.displayAfmeting = defaultAfmeting(cat, categories, updated.locatieType);
+      } else {
+        (updated as any)[field] = value;
+        if (field === "categoryId") {
+          const cat = leafCats.find((c) => c.id === value);
+          if (cat) {
+            updated.displayAfmeting = defaultAfmeting(cat, categories, updated.locatieType === "BOK" ? "BOK" : "WAND");
+          }
         }
       }
       return updated;
@@ -266,7 +273,7 @@ function AfdelingSection({
   allArticles: Article[];
   onAddLine: () => void;
   onRemoveLine: (id: number) => void;
-  onUpdateLine: (id: number, field: keyof InventoryLine, value: string | boolean) => void;
+  onUpdateLine: (id: number, field: keyof InventoryLine | "locatie", value: string | boolean) => void;
 }) {
   const [open, setOpen] = useState(true);
   const articleOptions = articles.length > 0 ? articles : allArticles;
@@ -307,7 +314,6 @@ function AfdelingSection({
           <thead className="bg-gray-50 border-b border-gray-100">
             <tr>
               <th className="text-left px-3 py-2 font-medium text-gray-600 text-xs">Locatie</th>
-              <th className="text-left px-3 py-2 font-medium text-gray-600 text-xs w-16">Nr.</th>
               <th className="text-left px-3 py-2 font-medium text-gray-600 text-xs w-16">Bord</th>
               <th className="text-left px-3 py-2 font-medium text-gray-600 text-xs">Display</th>
               <th className="text-left px-3 py-2 font-medium text-gray-600 text-xs">Artikel</th>
@@ -322,22 +328,14 @@ function AfdelingSection({
               <tr key={line.id} className="hover:bg-gray-50">
                 <td className="px-3 py-1.5">
                   <select
-                    value={line.locatieType}
-                    onChange={(e) => onUpdateLine(line.id, "locatieType", e.target.value)}
+                    value={encodeLocatie(line.locatieType, parseInt(line.locatieNummer) || 0)}
+                    onChange={(e) => onUpdateLine(line.id, "locatie", e.target.value)}
                     className="border border-gray-200 rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
                   >
-                    <option value="WAND">Wand</option>
-                    <option value="BOK">Bok</option>
+                    {LOCATIE_OPTIONS.map((o) => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
                   </select>
-                </td>
-                <td className="px-3 py-1.5">
-                  <input
-                    type="number"
-                    min="1"
-                    value={line.locatieNummer}
-                    onChange={(e) => onUpdateLine(line.id, "locatieNummer", e.target.value)}
-                    className="w-14 border border-gray-200 rounded px-2 py-1 text-xs text-center focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  />
                 </td>
                 <td className="px-3 py-1.5">
                   {line.locatieType === "BOK" ? (
@@ -356,7 +354,7 @@ function AfdelingSection({
                 </td>
                 <td className="px-3 py-1.5">
                   {(() => {
-                    const opts = getAfmetingOptions(cat, allCats, line.locatieType);
+                    const opts = getAfmetingOptions(cat, allCats, line.locatieType === "BOK" ? "BOK" : "WAND");
                     return (
                       <select
                         value={line.displayAfmeting}

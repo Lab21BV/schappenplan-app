@@ -24,7 +24,7 @@ const SHOWROOMS = [
 ];
 
 async function main() {
-  const hashedPassword = await bcrypt.hash("lab21", 10);
+  const hashedPassword = await bcrypt.hash("Lab21", 10);
 
   // Fetch source data from Amersfoort
   const sourcePlanogram = await prisma.planogramItem.findMany({ where: { showroomId: SOURCE_ID } });
@@ -40,19 +40,19 @@ async function main() {
       create: { id: sr.id, name: sr.name, location: sr.location },
     });
 
-    // 2. Upsert VERKOPER user (skip if email already exists)
+    // 2. Upsert VERKOPER user — always sync password so re-runs reset credentials
     const existingUser = await prisma.user.findUnique({ where: { email: sr.email } });
-    if (!existingUser) {
-      await prisma.user.create({
-        data: {
-          name: `${sr.name} Showroom`,
-          email: sr.email,
-          password: hashedPassword,
-          role: "VERKOPER",
-          showroomId: sr.id,
-        },
-      });
-    }
+    await prisma.user.upsert({
+      where: { email: sr.email },
+      update: { password: hashedPassword, role: "VERKOPER", showroomId: sr.id },
+      create: {
+        name: `${sr.name} Showroom`,
+        email: sr.email,
+        password: hashedPassword,
+        role: "VERKOPER",
+        showroomId: sr.id,
+      },
+    });
 
     // 3. Copy planogram from Amersfoort (skip source itself)
     if (sr.id !== SOURCE_ID) {
@@ -82,13 +82,13 @@ async function main() {
       }
     }
 
-    console.log(`✅ ${sr.name.padEnd(14)} ${existingUser ? "(user existed)" : "user aangemaakt"} · ${sr.id !== SOURCE_ID ? `${sourcePlanogram.length} planogram items gekopieerd` : "brondata ongewijzigd"}`);
+    console.log(`✅ ${sr.name.padEnd(14)} ${existingUser ? "wachtwoord gereset" : "user aangemaakt"} · ${sr.id !== SOURCE_ID ? `${sourcePlanogram.length} planogram items gekopieerd` : "brondata ongewijzigd"}`);
   }
 
   console.log("\n📋 Login credentials:");
   console.log("─".repeat(50));
   for (const sr of SHOWROOMS) {
-    console.log(`  ${sr.email.padEnd(30)} / lab21`);
+    console.log(`  ${sr.email.padEnd(30)} / Lab21`);
   }
   console.log("\n✅ Setup voltooid.");
 }

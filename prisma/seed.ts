@@ -126,7 +126,7 @@ async function main() {
   }
 
   // ── Users ─────────────────────────────────────────────────────────────────
-  const hashedPassword = await bcrypt.hash("lab21", 10);
+  const hashedPassword = await bcrypt.hash("Lab21", 10);
 
   const verkoper = await prisma.user.upsert({
     where: { email: "amersfoort@lab21.nl" },

@@ -59,6 +59,35 @@ export function decodeLocatie(value: string): { type: LocatieType; nummer: numbe
   return opt ? { type: opt.type, nummer: opt.nummer } : null;
 }
 
+const LOCATIE_TYPES: ReadonlySet<LocatieType> = new Set(LOCATIE_OPTIONS.map((o) => o.type));
+const LOCATIE_BY_VALUE = new Map(LOCATIE_OPTIONS.map((o) => [o.value.toUpperCase(), o]));
+const normLabel = (s: string) => s.toLowerCase().replace(/\s+/g, " ").trim();
+const LOCATIE_BY_LABEL = new Map(LOCATIE_OPTIONS.map((o) => [normLabel(o.label), o]));
+
+// Accept "WAND" / "BOK" / "STROK" + nummer, combined "WAND-1", or labels like "Wand boven".
+export function parseLocatie(
+  rawType: string,
+  rawNummer: string,
+): { type: LocatieType; nummer: number } | null {
+  const t = rawType.trim();
+  if (!t) return null;
+  const upper = t.toUpperCase();
+
+  if (LOCATIE_TYPES.has(upper as LocatieType)) {
+    const num = parseInt(rawNummer.trim() || "1", 10);
+    if (isNaN(num) || num < 1) return null;
+    return { type: upper as LocatieType, nummer: num };
+  }
+
+  const byValue = LOCATIE_BY_VALUE.get(upper);
+  if (byValue) return { type: byValue.type, nummer: byValue.nummer };
+
+  const byLabel = LOCATIE_BY_LABEL.get(normLabel(t));
+  if (byLabel) return { type: byLabel.type, nummer: byLabel.nummer };
+
+  return null;
+}
+
 export function labelForLocatie(type: string | null | undefined, nummer: number | null | undefined): string {
   if (!type) return "—";
   const opt = LOCATIE_OPTIONS.find((o) => o.type === type && o.nummer === nummer);

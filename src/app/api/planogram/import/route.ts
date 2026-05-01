@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import * as XLSX from "xlsx";
+import { parseLocatie } from "@/lib/displayOptions";
 
-const VALID_TYPES = new Set(["WAND", "BOK", "STROK"]);
 const VALID_AFMETINGEN = new Set(["100x60", "120x60", "STROK"]);
 
 export async function POST(req: Request) {
@@ -51,22 +51,22 @@ export async function POST(req: Request) {
     const rowNr = i + 2; // 1-indexed + header
 
     const articleNumber = String(row["artikelnummer"] ?? row["Artikelnummer"] ?? "").trim().toUpperCase();
-    const locatieType = String(row["locatie_type"] ?? row["Locatie Type"] ?? "").trim().toUpperCase();
-    const locatieNummer = parseInt(String(row["locatie_nummer"] ?? row["Locatie Nummer"] ?? "1"));
+    const rawLocatieType = String(row["locatie_type"] ?? row["Locatie Type"] ?? "");
+    const rawLocatieNummer = String(row["locatie_nummer"] ?? row["Locatie Nummer"] ?? "1");
     const positie = parseInt(String(row["positie"] ?? row["Positie"] ?? "1"));
     const displayAfmeting = String(row["display_afmeting"] ?? row["Display Afmeting"] ?? "100x60").trim();
     const notes = String(row["notities"] ?? row["Notities"] ?? "").trim() || null;
 
     if (!articleNumber) { errors.push(`Rij ${rowNr}: artikelnummer ontbreekt`); continue; }
-    if (!VALID_TYPES.has(locatieType)) { errors.push(`Rij ${rowNr}: locatie_type "${locatieType}" ongeldig (gebruik WAND, BOK of STROK)`); continue; }
+    const loc = parseLocatie(rawLocatieType, rawLocatieNummer);
+    if (!loc) { errors.push(`Rij ${rowNr}: locatie_type "${rawLocatieType.trim()}" ongeldig (gebruik WAND, BOK of STROK, of een label zoals "Wand boven")`); continue; }
     if (!VALID_AFMETINGEN.has(displayAfmeting)) { errors.push(`Rij ${rowNr}: display_afmeting "${displayAfmeting}" ongeldig (gebruik 100x60, 120x60 of STROK)`); continue; }
-    if (isNaN(locatieNummer) || locatieNummer < 1) { errors.push(`Rij ${rowNr}: locatie_nummer ongeldig`); continue; }
     if (isNaN(positie) || positie < 1) { errors.push(`Rij ${rowNr}: positie ongeldig`); continue; }
 
     const article = articleMap.get(articleNumber);
     if (!article) { errors.push(`Rij ${rowNr}: artikel "${articleNumber}" niet gevonden`); continue; }
 
-    items.push({ articleId: article.id, categoryId: article.categoryId, showroomId, locatieType, locatieNummer, positie, displayAfmeting, notes });
+    items.push({ articleId: article.id, categoryId: article.categoryId, showroomId, locatieType: loc.type, locatieNummer: loc.nummer, positie, displayAfmeting, notes });
   }
 
   if (errors.length > 0) {

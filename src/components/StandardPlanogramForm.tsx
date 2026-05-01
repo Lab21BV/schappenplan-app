@@ -265,7 +265,7 @@ function AfdelingSection({
                   >
                     <option value="WAND">Wand</option>
                     <option value="BOK">Bok</option>
-                    <option value="STROK">Strok</option>
+                    <option value="STROK">Strook</option>
                   </select>
                 </td>
                 <td className="px-3 py-1.5">

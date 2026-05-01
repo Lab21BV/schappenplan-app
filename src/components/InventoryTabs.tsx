@@ -9,7 +9,7 @@ import { statusBadgeClass } from "@/lib/displayOptions";
 
 function locatieLabel(locatieType: string | null, locatieNummer: number | null, bordNummer?: number | null) {
   if (!locatieType) return "—";
-  if (locatieType === "STROK") return `Strok ${locatieNummer ?? ""}`.trim();
+  if (locatieType === "STROK") return `Strook ${locatieNummer ?? ""}`.trim();
   if (locatieType === "WAND")  return `Wand ${locatieNummer ?? ""}`.trim();
   if (locatieType === "BOK") {
     const bok = `Bok ${locatieNummer ?? ""}`.trim();

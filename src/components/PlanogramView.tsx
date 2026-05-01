@@ -54,7 +54,7 @@ interface LocatieTerms {
 const DEFAULT_TERMS: LocatieTerms = {
   wand: "Wand", bok: "Bok", wandShort: "w", bokShort: "b",
   afmetingLabel: "Afmeting", afmetingEditable: false,
-  afmetingDisplay: (_type, value) => value === "STROK" ? "Strok" : value ? `${value} cm` : null,
+  afmetingDisplay: (_type, value) => value === "STROK" ? "Strook" : value ? `${value} cm` : null,
 };
 
 const GORDIJNEN_TERMS: LocatieTerms = {
@@ -156,7 +156,7 @@ function ConfigEditor({ config, showroomId, categoryId, terms }: ConfigEditorPro
 function locatieLabel(type: string, nummer: number, terms: LocatieTerms) {
   if (type === "WAND") return `${terms.wand} ${nummer}`;
   if (type === "BOK") return `${terms.bok} ${nummer}`;
-  if (type === "STROK") return `Strok ${nummer}`;
+  if (type === "STROK") return `Strook ${nummer}`;
   return `${type} ${nummer}`;
 }
 

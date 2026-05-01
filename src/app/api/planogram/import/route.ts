@@ -6,6 +6,13 @@ import { parseLocatie } from "@/lib/displayOptions";
 
 const VALID_AFMETINGEN = new Set(["100x60", "120x60", "STROK"]);
 
+// "Strook" / "strook" → canonical "STROK"
+function normalizeAfmeting(raw: string): string {
+  const v = raw.trim();
+  if (/^strook$/i.test(v)) return "STROK";
+  return v;
+}
+
 export async function POST(req: Request) {
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -54,7 +61,7 @@ export async function POST(req: Request) {
     const rawLocatieType = String(row["locatie_type"] ?? row["Locatie Type"] ?? "");
     const rawLocatieNummer = String(row["locatie_nummer"] ?? row["Locatie Nummer"] ?? "1");
     const positie = parseInt(String(row["positie"] ?? row["Positie"] ?? "1"));
-    const displayAfmeting = String(row["display_afmeting"] ?? row["Display Afmeting"] ?? "100x60").trim();
+    const displayAfmeting = normalizeAfmeting(String(row["display_afmeting"] ?? row["Display Afmeting"] ?? "100x60"));
     const notes = String(row["notities"] ?? row["Notities"] ?? "").trim() || null;
 
     if (!articleNumber) { errors.push(`Rij ${rowNr}: artikelnummer ontbreekt`); continue; }

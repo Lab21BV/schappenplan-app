@@ -16,10 +16,10 @@ export default function ArticleImport({ onDone }: { onDone: () => void }) {
   const inputRef = useRef<HTMLInputElement>(null);
 
   function downloadTemplate() {
-    const header = "artikelnummer,artikelnaam,leverancier,categorie,display,kostprijs,verkoopprijs_incl_btw,prio\n";
+    const header = "artikelnummer,artikelnaam,leverancier,categorie,display,kostprijs,verkoopprijs_incl_btw,prio,status\n";
     const example =
-      "ART001,Voorbeeld Artikel,Leverancier BV,Tegels PVC Klik,strook;bord 100x60,12.50,39.95,3\n" +
-      "ART002,Ander Artikel,Leverancier BV,Tegels PVC Lijm,bord 120x60,8.00,24.95,5\n";
+      "ART001,Voorbeeld Artikel,Leverancier BV,Tegels PVC Klik,strook;bord 100x60,12.50,39.95,3,Collectie\n" +
+      "ART002,Ander Artikel,Leverancier BV,Tegels PVC Lijm,bord 120x60,8.00,24.95,5,Uitlopend\n";
     const blob = new Blob([header + example], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -53,11 +53,13 @@ export default function ArticleImport({ onDone }: { onDone: () => void }) {
       </div>
 
       <p className="text-xs text-gray-500">
-        Kolommen: <span className="font-mono">artikelnummer, artikelnaam, leverancier, categorie, display, kostprijs, verkoopprijs_incl_btw, prio</span>
+        Kolommen: <span className="font-mono">artikelnummer, artikelnaam, leverancier, categorie, display, kostprijs, verkoopprijs_incl_btw, prio, status</span>
         <br />
         Display (scheiden met <span className="font-mono">;</span>): <span className="font-mono">strook · bord 100x60 · bord 120x60 · showvloer · [eigen tekst]</span>
         <br />
-        Prio: 1–5 · Marge wordt automatisch berekend uit kostprijs en verkoopprijs excl. btw (21%)
+        Prio: 1–5 · Status: <span className="font-mono">Collectie · Uitlopend · Tijdelijk niet leverbaar</span> (leeg = Collectie)
+        <br />
+        Marge wordt automatisch berekend uit kostprijs en verkoopprijs excl. btw (21%)
       </p>
 
       <div

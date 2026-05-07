@@ -336,6 +336,7 @@ function SubafdelingSection({
                     <th className="text-left pb-1.5 pr-4 font-medium">Status</th>
                     <th className="text-left pb-1.5 pr-4 font-medium">Bord / Strook</th>
                     <th className="text-left pb-1.5 pr-4 font-medium">{terms.afmetingLabel}</th>
+                    <th className="text-left pb-1.5 pr-4 font-medium">Notities</th>
                     {isHQ && <th className="text-left pb-1.5 font-medium">Leverancier</th>}
                   </tr>
                 </thead>
@@ -391,6 +392,9 @@ function SubafdelingSection({
                             </>
                           );
                         })()}
+                        <td className="py-2 pr-4 text-xs text-gray-600">
+                          {item.notes ? item.notes : <span className="text-gray-300">—</span>}
+                        </td>
                         {isHQ && <td className="py-2 text-xs text-gray-500">{item.article.supplierNameReal}</td>}
                       </tr>
                     ))}

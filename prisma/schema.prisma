@@ -71,6 +71,9 @@ model Article {
   showFloors     ShowFloor[]
   inventories    Inventory[]
   salesData      SalesData[]
+
+  @@index([categoryId])
+  @@index([isActive])
 }
 
 model DisplayConfig {
@@ -102,6 +105,11 @@ model PlanogramItem {
   showroom Showroom @relation(fields: [showroomId], references: [id])
   article  Article  @relation(fields: [articleId], references: [id])
   category Category @relation(fields: [categoryId], references: [id])
+
+  @@index([showroomId])
+  @@index([articleId])
+  @@index([categoryId])
+  @@index([showroomId, locatieType, locatieNummer, positie])
 }
 
 model ShowFloor {
@@ -118,6 +126,9 @@ model ShowFloor {
 
   showroom Showroom @relation(fields: [showroomId], references: [id])
   article  Article  @relation(fields: [articleId], references: [id])
+
+  @@index([showroomId])
+  @@index([articleId])
 }
 
 model Inventory {
@@ -139,6 +150,10 @@ model Inventory {
   article   Article   @relation(fields: [articleId], references: [id])
   category  Category? @relation(fields: [categoryId], references: [id])
   createdBy User      @relation(fields: [createdById], references: [id])
+
+  @@index([showroomId])
+  @@index([articleId])
+  @@index([showroomId, locatieType, locatieNummer])
 }
 
 model SalesData {
@@ -151,4 +166,7 @@ model SalesData {
 
   article  Article  @relation(fields: [articleId], references: [id])
   showroom Showroom @relation(fields: [showroomId], references: [id])
+
+  @@index([showroomId])
+  @@index([articleId])
 }

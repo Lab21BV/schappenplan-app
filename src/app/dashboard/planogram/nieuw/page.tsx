@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getCategories } from "@/lib/dataCache";
 import StandardPlanogramForm from "@/components/StandardPlanogramForm";
 
 export default async function NieuwSchappenplanPage() {
@@ -18,7 +19,7 @@ export default async function NieuwSchappenplanPage() {
     user.role === "HOOFDKANTOOR"
       ? prisma.showroom.findMany()
       : prisma.showroom.findMany({ where: { id: showroomId } }),
-    prisma.category.findMany({ orderBy: { order: "asc" } }),
+    getCategories(),
   ]);
 
   return (

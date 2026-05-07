@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getCategories } from "@/lib/dataCache";
 import NewInventoryForm from "@/components/NewInventoryForm";
 
 export default async function NewInventoryPage() {
@@ -18,7 +19,7 @@ export default async function NewInventoryPage() {
     user.role === "HOOFDKANTOOR"
       ? prisma.showroom.findMany()
       : prisma.showroom.findMany({ where: { id: showroomId } }),
-    prisma.category.findMany({ orderBy: { order: "asc" } }),
+    getCategories(),
     prisma.displayConfig.findMany({
       where: { showroomId },
       include: { category: true },

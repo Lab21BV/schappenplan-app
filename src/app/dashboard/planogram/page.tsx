@@ -1,19 +1,10 @@
 import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getShowrooms, getCategories } from "@/lib/dataCache";
+import { buildCategoryTree } from "@/lib/categoryTree";
 import PlanogramView from "@/components/PlanogramView";
 import PlanogramImport from "@/components/PlanogramImport";
-import type { CategoryTree } from "@/types";
-
-function buildCategoryTree(parentId: string | null, allCats: any[]): CategoryTree[] {
-  return allCats
-    .filter((c) => c.parentId === parentId)
-    .sort((a, b) => a.order - b.order)
-    .map((c) => ({
-      ...c,
-      children: buildCategoryTree(c.id, allCats),
-    }));
-}
 
 export default async function PlanogramPage({
   searchParams,
@@ -27,7 +18,7 @@ export default async function PlanogramPage({
 
   const { showroom: showroomParam } = await searchParams;
 
-  const allShowrooms = isHQ ? await prisma.showroom.findMany({ orderBy: { name: "asc" } }) : [];
+  const allShowrooms = isHQ ? await getShowrooms() : [];
 
   // HQ: use URL param → fallback to first showroom
   // Verkoper: always their own showroom
@@ -36,7 +27,7 @@ export default async function PlanogramPage({
     : (user.showroomId ?? (await prisma.showroom.findFirst())!.id);
 
   const [allCategories, showroom, displayConfigs] = await Promise.all([
-    prisma.category.findMany({ orderBy: { order: "asc" } }),
+    getCategories(),
     prisma.showroom.findUnique({ where: { id: showroomId } }),
     prisma.displayConfig.findMany({
       where: { showroomId },
@@ -50,7 +41,7 @@ export default async function PlanogramPage({
     orderBy: [{ locatieType: "asc" }, { locatieNummer: "asc" }, { positie: "asc" }],
   });
 
-  const categoryTree = buildCategoryTree(null, allCategories as any[]);
+  const categoryTree = buildCategoryTree(null, allCategories);
 
   return (
     <div className="space-y-6">

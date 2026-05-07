@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { getShowrooms, getCategories } from "@/lib/dataCache";
 import AdminManager from "@/components/AdminManager";
 
 export default async function AdminPage() {
@@ -10,8 +11,8 @@ export default async function AdminPage() {
   if (user.role !== "HOOFDKANTOOR") redirect("/dashboard");
 
   const [showrooms, categories, displayConfigs] = await Promise.all([
-    prisma.showroom.findMany(),
-    prisma.category.findMany({ orderBy: { order: "asc" } }),
+    getShowrooms(),
+    getCategories(),
     prisma.displayConfig.findMany({ include: { category: true, showroom: true } }),
   ]);
 

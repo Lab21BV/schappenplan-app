@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getShowrooms } from "@/lib/dataCache";
 import * as XLSX from "xlsx";
 
 function displayInfo(afmeting: string): { type: string; size: string } {
@@ -20,9 +21,14 @@ export async function GET(req: Request) {
   const format = searchParams.get("format") === "xlsx" ? "xlsx" : "csv";
 
   const [showrooms, planogramItems, inventoryItems] = await Promise.all([
-    prisma.showroom.findMany({ orderBy: { name: "asc" } }),
+    getShowrooms(),
     prisma.planogramItem.findMany({
-      include: {
+      select: {
+        showroomId: true,
+        articleId: true,
+        locatieType: true,
+        locatieNummer: true,
+        displayAfmeting: true,
         article: { select: { articleNumber: true, articleName: true, supplierNameReal: true } },
       },
     }),

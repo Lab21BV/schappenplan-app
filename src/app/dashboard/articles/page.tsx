@@ -1,6 +1,8 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { getCategories } from "@/lib/dataCache";
+import { leafOrder } from "@/lib/categoryTree";
 import ArticlesManager from "@/components/ArticlesManager";
 
 export default async function ArticlesPage() {
@@ -13,19 +15,10 @@ export default async function ArticlesPage() {
     prisma.article.findMany({
       include: { category: true },
     }),
-    prisma.category.findMany({ orderBy: { order: "asc" } }),
+    getCategories(),
   ]);
 
-  function leafOrder(parentId: string | null): string[] {
-    const children = categories
-      .filter((c) => c.parentId === parentId)
-      .sort((a, b) => a.order - b.order);
-    return children.flatMap((c) =>
-      categories.some((x) => x.parentId === c.id) ? leafOrder(c.id) : [c.id]
-    );
-  }
-
-  const order = leafOrder(null);
+  const order = leafOrder(null, categories);
   const sorted = [...articles].sort((a, b) => {
     const ai = order.indexOf(a.categoryId);
     const bi = order.indexOf(b.categoryId);

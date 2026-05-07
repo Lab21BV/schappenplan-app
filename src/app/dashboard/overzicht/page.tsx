@@ -1,5 +1,7 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getShowrooms, getCategories } from "@/lib/dataCache";
+import { buildCategoryTree, findRoot, leafOrder } from "@/lib/categoryTree";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import PlanogramView from "@/components/PlanogramView";
@@ -7,7 +9,6 @@ import InventoryTabs from "@/components/InventoryTabs";
 import type { RootGroup, VerschilRoot, ShowFloorVerschilItem } from "@/components/InventoryTabs";
 import { ShowroomsOverview, LeveranciersOverview, VerschilDetail, TotaalVerschilOverview } from "@/components/HQOverview";
 import type { ShowroomStat, SupplierRow, VerschilShowroom } from "@/components/HQOverview";
-import type { CategoryTree } from "@/types";
 
 type View = "overzicht" | "schappenplan" | "inventarisatie" | "verschil";
 
@@ -17,28 +18,6 @@ const VIEWS: { key: View; label: string }[] = [
   { key: "inventarisatie", label: "Inventarisatie" },
   { key: "verschil", label: "Verschil" },
 ];
-
-function buildCategoryTree(parentId: string | null, allCats: any[]): CategoryTree[] {
-  return allCats
-    .filter((c) => c.parentId === parentId)
-    .sort((a, b) => a.order - b.order)
-    .map((c) => ({ ...c, children: buildCategoryTree(c.id, allCats) }));
-}
-
-function findRoot(catId: string, allCats: any[]): { id: string; name: string; order: number } {
-  let cur = allCats.find((c: any) => c.id === catId);
-  while (cur?.parentId) cur = allCats.find((c: any) => c.id === cur!.parentId);
-  return cur ?? { id: catId, name: "Overig", order: 99 };
-}
-
-function leafOrder(parentId: string | null, allCats: any[]): string[] {
-  return allCats
-    .filter((c: any) => c.parentId === parentId)
-    .sort((a: any, b: any) => a.order - b.order)
-    .flatMap((c: any) =>
-      allCats.some((x: any) => x.parentId === c.id) ? leafOrder(c.id, allCats) : [c.id]
-    );
-}
 
 export default async function OverzichtPage({
   searchParams,
@@ -55,7 +34,7 @@ export default async function OverzichtPage({
     ? rawView
     : "overzicht") as View;
 
-  const showrooms = await prisma.showroom.findMany({ orderBy: { name: "asc" } });
+  const showrooms = await getShowrooms();
   const selectedShowroom = showrooms.find((s) => s.id === showroomParam) ?? showrooms[0];
   const showroomId = selectedShowroom?.id ?? "";
 
@@ -143,16 +122,22 @@ export default async function OverzichtPage({
 async function OverzichtView({ showrooms }: { showrooms: { id: string; name: string }[] }) {
   const [planogramItems, inventoryItems] = await Promise.all([
     prisma.planogramItem.findMany({
-      include: {
+      select: {
+        showroomId: true,
+        articleId: true,
+        locatieType: true,
+        locatieNummer: true,
         article: { select: { id: true, articleNumber: true, articleName: true, supplierNameReal: true } },
-        category: { select: { name: true } },
       },
     }),
     prisma.inventory.findMany({
       where: { locatieType: { not: null } },
-      include: {
+      select: {
+        showroomId: true,
+        articleId: true,
+        locatieType: true,
+        locatieNummer: true,
         article: { select: { id: true, articleNumber: true, articleName: true, supplierNameReal: true } },
-        category: { select: { name: true } },
       },
     }),
   ]);
@@ -198,7 +183,7 @@ async function OverzichtView({ showrooms }: { showrooms: { id: string; name: str
 
 async function SchappenplanView({ showroomId, showroomName }: { showroomId: string; showroomName: string }) {
   const [allCategories, displayConfigs, planogramItems] = await Promise.all([
-    prisma.category.findMany({ orderBy: { order: "asc" } }),
+    getCategories(),
     prisma.displayConfig.findMany({ where: { showroomId }, include: { category: true } }),
     prisma.planogramItem.findMany({
       where: { showroomId },
@@ -207,7 +192,7 @@ async function SchappenplanView({ showroomId, showroomName }: { showroomId: stri
     }),
   ]);
 
-  const categoryTree = buildCategoryTree(null, allCategories as any[]);
+  const categoryTree = buildCategoryTree(null, allCategories);
 
   return (
     <div className="space-y-4">
@@ -233,7 +218,7 @@ async function InventarisatieView({ showroomId, showroomName }: { showroomId: st
       orderBy: [{ categoryId: "asc" }, { locatieType: "asc" }, { locatieNummer: "asc" }, { bordNummer: "asc" }, { createdAt: "desc" }],
       take: 500,
     }),
-    prisma.category.findMany({ orderBy: { order: "asc" } }),
+    getCategories(),
     prisma.planogramItem.findMany({
       where: { showroomId },
       include: { article: { include: { category: true } }, category: true },
@@ -332,14 +317,22 @@ async function VerschilView({
   const [planogramItems, inventoryItems] = await Promise.all([
     prisma.planogramItem.findMany({
       where: filterShowroomId ? { showroomId: filterShowroomId } : undefined,
-      include: {
+      select: {
+        showroomId: true,
+        articleId: true,
+        locatieType: true,
+        locatieNummer: true,
         article: { select: { id: true, articleNumber: true, articleName: true, supplierNameReal: true } },
         category: { select: { name: true } },
       },
     }),
     prisma.inventory.findMany({
       where: filterShowroomId ? { showroomId: filterShowroomId, locatieType: { not: null } } : { locatieType: { not: null } },
-      include: {
+      select: {
+        showroomId: true,
+        articleId: true,
+        locatieType: true,
+        locatieNummer: true,
         article: { select: { id: true, articleNumber: true, articleName: true, supplierNameReal: true } },
         category: { select: { name: true } },
       },

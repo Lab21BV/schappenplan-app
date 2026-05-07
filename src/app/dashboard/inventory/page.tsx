@@ -1,5 +1,7 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getShowrooms, getCategories } from "@/lib/dataCache";
+import { findRoot, leafOrder } from "@/lib/categoryTree";
 import Link from "next/link";
 import { Plus } from "lucide-react";
 import InventoryTabs, { type RootGroup, type VerschilRoot, type ShowFloorVerschilItem } from "@/components/InventoryTabs";
@@ -16,7 +18,7 @@ export default async function InventoryPage({
 
   const { showroom: showroomParam } = await searchParams;
 
-  const allShowrooms = isHQ ? await prisma.showroom.findMany({ orderBy: { name: "asc" } }) : [];
+  const allShowrooms = isHQ ? await getShowrooms() : [];
 
   const showroomId = isHQ
     ? (allShowrooms.find((s) => s.id === showroomParam)?.id ?? allShowrooms[0]?.id ?? "")
@@ -40,7 +42,7 @@ export default async function InventoryPage({
       ],
       take: 500,
     }),
-    prisma.category.findMany({ orderBy: { order: "asc" } }),
+    getCategories(),
     prisma.planogramItem.findMany({
       where: { showroomId },
       include: { article: { include: { category: true } }, category: true },
@@ -52,27 +54,15 @@ export default async function InventoryPage({
     }),
   ]);
 
-  function findRoot(catId: string): { id: string; name: string; order: number } {
-    let cur = allCategories.find((c) => c.id === catId);
-    while (cur?.parentId) cur = allCategories.find((c) => c.id === cur!.parentId);
-    return cur ?? { id: catId, name: "Overig", order: 99 };
-  }
-
-  function leafOrder(parentId: string | null): string[] {
-    const children = allCategories
-      .filter((c) => c.parentId === parentId)
-      .sort((a, b) => a.order - b.order);
-    return children.flatMap((c) =>
-      allCategories.some((x) => x.parentId === c.id) ? leafOrder(c.id) : [c.id]
-    );
-  }
+  const fr = (catId: string) => findRoot(catId, allCategories);
+  const lo = (parentId: string | null) => leafOrder(parentId, allCategories);
 
   // ── Inventarisatie grouping ──────────────────────────────────────────────
   const rootMap: Record<string, RootGroup> = {};
   for (const inv of inventories) {
     const leafCatId   = inv.categoryId ?? inv.article.category.id;
     const leafCatName = inv.category?.name ?? inv.article.category.name;
-    const root = findRoot(leafCatId);
+    const root = fr(leafCatId);
     if (!rootMap[root.id]) rootMap[root.id] = { name: root.name, order: root.order, cats: {} };
     if (!rootMap[root.id].cats[leafCatId]) rootMap[root.id].cats[leafCatId] = { name: leafCatName, items: [] };
     rootMap[root.id].cats[leafCatId].items.push({
@@ -93,7 +83,7 @@ export default async function InventoryPage({
   const sortedRoots = Object.entries(rootMap)
     .sort((a, b) => a[1].order - b[1].order)
     .map(([rootId, rootGroup]) => {
-      const order = leafOrder(rootId);
+      const order = lo(rootId);
       const sortedCats = Object.fromEntries(
         Object.entries(rootGroup.cats).sort(([a], [b]) => {
           const ai = order.indexOf(a), bi = order.indexOf(b);
@@ -118,8 +108,8 @@ export default async function InventoryPage({
   const missingRootMap: Record<string, VerschilRoot> = {};
   for (const p of planogramItems) {
     if (!invKeys.has(`${p.articleId}|${p.locatieType}|${p.locatieNummer}`)) {
-      const root = findRoot(p.category.id);
-      if (!missingRootMap[root.id]) missingRootMap[root.id] = { name: root.name, order: root.order, items: [], leafOrder: leafOrder(root.id) };
+      const root = fr(p.category.id);
+      if (!missingRootMap[root.id]) missingRootMap[root.id] = { name: root.name, order: root.order, items: [], leafOrder: lo(root.id) };
       const alreadyAdded = missingRootMap[root.id].items.some(
         (x) => x.articleNumber === p.article.articleNumber && x.locatieType === p.locatieType && x.locatieNummer === p.locatieNummer
       );
@@ -142,8 +132,8 @@ export default async function InventoryPage({
     if ((inv as any).isDisplayMaterial) continue; // displaymateriaal hoort niet op schappenplan
     if (!planKeys.has(`${inv.articleId}|${inv.locatieType}|${inv.locatieNummer}`)) {
       const leafCatId = inv.categoryId ?? inv.article.category.id;
-      const root = findRoot(leafCatId);
-      if (!extraRootMap[root.id]) extraRootMap[root.id] = { name: root.name, order: root.order, items: [], leafOrder: leafOrder(root.id) };
+      const root = fr(leafCatId);
+      if (!extraRootMap[root.id]) extraRootMap[root.id] = { name: root.name, order: root.order, items: [], leafOrder: lo(root.id) };
       extraRootMap[root.id].items.push({
         articleNumber: inv.article.articleNumber,
         articleName: inv.article.articleName,

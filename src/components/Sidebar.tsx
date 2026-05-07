@@ -11,6 +11,7 @@ import {
   Settings,
   BarChart2,
   BookOpen,
+  Network,
 } from "lucide-react";
 
 const verkooperLinks = [
@@ -29,6 +30,7 @@ const hqLinks = [
   { href: "/dashboard/overzicht", label: "HQ Overzicht", icon: BarChart2 },
   { href: "/dashboard/articles", label: "Artikelen", icon: Package },
   { href: "/dashboard/admin", label: "Beheer", icon: Settings },
+  { href: "/dashboard/werking", label: "Werking & flow", icon: Network },
   { href: "/dashboard/handleiding", label: "Handleiding", icon: BookOpen },
 ];
 

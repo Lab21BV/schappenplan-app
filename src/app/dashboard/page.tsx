@@ -1,6 +1,6 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { Grid3X3, ClipboardList, Package, TrendingUp } from "lucide-react";
+import { Grid3X3, ClipboardList, Package, TrendingUp, HandCoins, AlertCircle } from "lucide-react";
 import Link from "next/link";
 
 export default async function DashboardPage() {
@@ -10,7 +10,10 @@ export default async function DashboardPage() {
 
   const showroomId = user.showroomId;
 
-  const [articleCount, inventoryCount, planogramCount, recentInventories, topArticles] = await Promise.all([
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const [articleCount, inventoryCount, planogramCount, recentInventories, topArticles, openLoanCount, overdueLoanCount] = await Promise.all([
     prisma.article.count({ where: { isActive: true } }),
     showroomId
       ? prisma.inventory.count({ where: { showroomId } })
@@ -30,12 +33,30 @@ export default async function DashboardPage() {
       take: 5,
       include: { category: true },
     }),
+    prisma.loan
+      .count({ where: { ...(showroomId ? { showroomId } : {}), returnedAt: null } })
+      .catch((e: { code?: string }) => (e?.code === "P2021" || e?.code === "P2022" ? 0 : Promise.reject(e))),
+    prisma.loan
+      .count({
+        where: {
+          ...(showroomId ? { showroomId } : {}),
+          returnedAt: null,
+          promisedReturnAt: { lt: today },
+        },
+      })
+      .catch((e: { code?: string }) => (e?.code === "P2021" || e?.code === "P2022" ? 0 : Promise.reject(e))),
   ]);
 
   const stats = [
     { label: "Actieve artikelen", value: articleCount, icon: Package, color: "bg-blue-100 text-blue-700" },
     { label: "Planogram posities", value: planogramCount, icon: Grid3X3, color: "bg-green-100 text-green-700" },
     { label: "Inventarisaties", value: inventoryCount, icon: ClipboardList, color: "bg-orange-100 text-orange-700" },
+    {
+      label: overdueLoanCount > 0 ? `Open uitleningen · ${overdueLoanCount} te laat` : "Open uitleningen",
+      value: openLoanCount,
+      icon: overdueLoanCount > 0 ? AlertCircle : HandCoins,
+      color: overdueLoanCount > 0 ? "bg-red-100 text-red-700" : "bg-amber-100 text-amber-700",
+    },
   ];
 
   return (
@@ -48,7 +69,7 @@ export default async function DashboardPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat) => (
           <div key={stat.label} className="bg-white rounded-xl border border-gray-200 p-5 flex items-center gap-4">
             <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${stat.color}`}>

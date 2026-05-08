@@ -12,6 +12,7 @@ import {
   Package,
   BarChart2,
   Settings,
+  HandCoins,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -98,17 +99,32 @@ const MODULES: Module[] = [
     ],
   },
   {
+    icon: HandCoins,
+    name: "Uitleningen",
+    direction: "showroom-to-hq",
+    hqRole:
+      "Bekijkt per showroom alle uitleningen (open / te laat / teruggebracht). Tabblad Uitleningen in HQ Overzicht toont het aantal te-late uitleningen per showroom plus alle te-late stalen op één rij — incl. klant, verkoper en aantal dagen te laat.",
+    showroomRole:
+      "Registreert per uitlening de klant (naam, e-mail, telefoon, adres), het staal (omschrijving + optioneel gekoppeld aan een inventaris-item), de verkoper, datum geleend en toegezegde retourdatum. Markeert later 'Teruggebracht' met 1 klik.",
+    flow: [
+      "Showroom klikt + Nieuwe uitlening — kiest klant, staal, datums",
+      "Optioneel: koppelen aan een inventaris-item → status 'Uitgeleend' verschijnt op die rij in Inventarisatie met link naar de detailpagina",
+      "Bij retour: showroom klikt 'Markeer als teruggebracht'; uitlening verhuist naar Teruggebracht-tab en de uitgeleend-status verdwijnt uit Inventarisatie",
+      "HQ ziet realtime cross-showroom welke uitleningen over de toegezegde datum zijn",
+    ],
+  },
+  {
     icon: BarChart2,
     name: "HQ Overzicht",
     direction: "hq-only",
     hqRole:
-      "Aggregeert alle data van alle showrooms: aantal planogrampunten, geïnventariseerde regels, ontbrekend/extra. Per showroom of totaal. Export naar Excel/CSV per leverancier.",
+      "Aggregeert alle data van alle showrooms: aantal planogrampunten, geïnventariseerde regels, ontbrekend/extra, open en te-late uitleningen. Per showroom of totaal. Export naar Excel/CSV per leverancier.",
     showroomRole:
       "Geen toegang.",
     flow: [
-      "Data uit Schappenplan + Inventarisatie + Showvloer wordt samengebracht",
+      "Data uit Schappenplan + Inventarisatie + Showvloer + Uitleningen wordt samengebracht",
       "HQ filtert op showroom of bekijkt totaal",
-      "Verschil-export geeft per leverancier een tabblad",
+      "Verschil-export geeft per leverancier een tabblad; Uitleningen-tab toont te-late stalen cross-showroom",
     ],
   },
 ];
@@ -167,7 +183,7 @@ function FlowDiagram() {
           </div>
           <div className="flex items-center gap-2 px-3 py-1.5 bg-green-50 rounded-full text-green-700 text-xs font-medium border border-green-200">
             <ArrowLeft className="w-3.5 h-3.5" />
-            Telling / Showvloer
+            Telling / Showvloer / Uitleningen
           </div>
         </div>
 
@@ -175,6 +191,7 @@ function FlowDiagram() {
           <li>Schappenplan inzien</li>
           <li>Inventarisatie tellen</li>
           <li>Showvloer registreren</li>
+          <li>Uitleningen registreren</li>
           <li>Notities terugkoppelen</li>
         </RoleBox>
       </div>

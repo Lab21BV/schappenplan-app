@@ -89,6 +89,29 @@ function VerkoperHandleiding() {
         <Note>Alleen artikelen uit de categorie <em>Vloer</em> zijn beschikbaar voor de showvloer.</Note>
       </Section>
 
+      <Section title="Uitleningen registreren">
+        <p>Wanneer een klant een staal (bord, strook, sample) meeneemt, registreer je dat hier zodat je weet wie wat heeft en wanneer het terug moet.</p>
+        <Step n={1}>Klik in het linkermenu op <strong>Uitleningen</strong>.</Step>
+        <Step n={2}>Klik rechtsboven op <em>+ Nieuwe uitlening</em>.</Step>
+        <Step n={3}>
+          (Optioneel) Kies bij <strong>Inventaris-item</strong> de specifieke locatie waar het staal vandaan komt
+          — dan verschijnt op de inventarisatie-pagina automatisch de status <strong className="text-amber-700">Uitgeleend</strong> bij die rij.
+        </Step>
+        <Step n={4}>Vul de <strong>omschrijving van het staal</strong> in (bijv. &quot;Bord 120x60 Sensation Oak Grey&quot;).</Step>
+        <Step n={5}>Vul de klantgegevens in: naam (verplicht), e-mail, telefoon, adres.</Step>
+        <Step n={6}>Stel <strong>Geleend op</strong> en <strong>Toegezegd terug</strong> in (default: vandaag + 14 dagen).</Step>
+        <Step n={7}>Klik op <em>Uitlening registreren</em>. De uitlening verschijnt in het tabblad <strong>Open</strong>.</Step>
+        <Note>Tabbladen <strong>Open</strong>, <strong className="text-red-700">Te laat</strong> en <strong className="text-green-700">Teruggebracht</strong> tonen het aantal in een badge. Te-late uitleningen springen rood eruit met het aantal dagen overschrijding.</Note>
+      </Section>
+
+      <Section title="Uitlening afmelden (teruggebracht)">
+        <Step n={1}>Ga naar <strong>Uitleningen</strong>.</Step>
+        <Step n={2}>Vind de uitlening in het tabblad <strong>Open</strong> of <strong>Te laat</strong>.</Step>
+        <Step n={3}>Klik op de groene knop <strong>✓ Terug</strong> aan het einde van de rij — de uitlening verhuist direct naar het tabblad <strong>Teruggebracht</strong>.</Step>
+        <Step n={4}>Optioneel: klik op de omschrijving om naar de detailpagina te gaan; daar kun je ook <em>Markeer als teruggebracht</em> klikken, gegevens bewerken of de uitlening verwijderen.</Step>
+        <Note>Per ongeluk afgemeld? Open de detailpagina van die uitlening en klik op <em>↺ Maak retour ongedaan</em>.</Note>
+      </Section>
+
       <Section title="Uitloggen">
         <Step n={1}>Klik rechtsboven op je naam of het gebruikersicoontje.</Step>
         <Step n={2}>Kies <em>Uitloggen</em>. Je wordt teruggestuurd naar de inlogpagina.</Step>
@@ -151,7 +174,22 @@ function HQHandleiding() {
           <li><strong>Schappenplan</strong> — het volledige schappenplan van een geselecteerde showroom.</li>
           <li><strong>Inventarisatie</strong> — de inventarisatiestatus van een geselecteerde showroom.</li>
           <li><strong>Verschil</strong> — alle ontbrekende en extra artikelen per showroom en totaal.</li>
+          <li><strong>Uitleningen</strong> — open en te-late uitleningen per showroom + complete cross-showroom lijst van te-late stalen met klantgegevens.</li>
         </ul>
+      </Section>
+
+      <Section title="Uitleningen — overzicht en opvolging">
+        <p>Elke showroom kan stalen uitlenen aan klanten. Als HQ zie je in één blik welke uitleningen open staan en welke over de toegezegde retourdatum zijn.</p>
+        <Step n={1}>
+          Snel overzicht: <strong>HQ Overzicht → tab Uitleningen</strong>. Daar zie je per showroom hoeveel uitleningen open staan en hoeveel te laat zijn, plus een tabel met alle te-late stalen (klant, verkoper, dagen te laat).
+        </Step>
+        <Step n={2}>
+          Detail per showroom: klik in het linkermenu op <strong>Uitleningen</strong>. Bovenaan staat een showroom-selector — klik een showroom om die te bekijken.
+        </Step>
+        <Step n={3}>
+          Klik op de omschrijving van een uitlening om de detailpagina te openen met klantgegevens, datums, gekoppelde inventaris-item en knoppen om te markeren als teruggebracht of te verwijderen.
+        </Step>
+        <Note>Op de inventarisatie-pagina zie je een amber <strong className="text-amber-700">Uitgeleend →</strong> badge bij elk inventaris-item dat aan een open uitlening gekoppeld is. Klik erop om naar de uitlening te springen.</Note>
       </Section>
 
       <Section title="Verschil exporteren (CSV / Excel)">

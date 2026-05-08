@@ -52,10 +52,16 @@ export default async function InventoryPage({
       include: { article: true },
       orderBy: { nummer: "asc" },
     }),
-    prisma.loan.findMany({
-      where: { showroomId, returnedAt: null, inventoryId: { not: null } },
-      select: { id: true, inventoryId: true, customerName: true, promisedReturnAt: true },
-    }),
+    // Defensive: Loan table may not yet exist (P2021) on environments where the migration hasn't run.
+    prisma.loan
+      .findMany({
+        where: { showroomId, returnedAt: null, inventoryId: { not: null } },
+        select: { id: true, inventoryId: true, customerName: true, promisedReturnAt: true },
+      })
+      .catch((e: { code?: string }) => {
+        if (e?.code === "P2021" || e?.code === "P2022") return [];
+        throw e;
+      }),
   ]);
 
   const loanByInventoryId = new Map<string, { id: string; customerName: string; promisedReturnAt: string }>();

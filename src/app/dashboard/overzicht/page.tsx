@@ -126,18 +126,35 @@ async function UitleningenView({ showrooms }: { showrooms: { id: string; name: s
   today.setHours(0, 0, 0, 0);
 
   const [openLoans, overdueLoans] = await Promise.all([
-    prisma.loan.findMany({
-      where: { returnedAt: null },
-      select: { showroomId: true, promisedReturnAt: true },
-    }),
-    prisma.loan.findMany({
-      where: { returnedAt: null, promisedReturnAt: { lt: today } },
-      include: {
-        showroom: { select: { id: true, name: true } },
-        user: { select: { name: true } },
-      },
-      orderBy: { promisedReturnAt: "asc" },
-    }),
+    prisma.loan
+      .findMany({
+        where: { returnedAt: null },
+        select: { showroomId: true, promisedReturnAt: true },
+      })
+      .catch((e: { code?: string }) => {
+        if (e?.code === "P2021" || e?.code === "P2022") return [];
+        throw e;
+      }),
+    prisma.loan
+      .findMany({
+        where: { returnedAt: null, promisedReturnAt: { lt: today } },
+        include: {
+          showroom: { select: { id: true, name: true } },
+          user: { select: { name: true } },
+        },
+        orderBy: { promisedReturnAt: "asc" },
+      })
+      .catch((e: { code?: string }) => {
+        if (e?.code === "P2021" || e?.code === "P2022") {
+          return [] as unknown as Awaited<ReturnType<typeof prisma.loan.findMany<{
+            include: {
+              showroom: { select: { id: true; name: true } };
+              user: { select: { name: true } };
+            };
+          }>>>;
+        }
+        throw e;
+      }),
   ]);
 
   const loanStats: LoanShowroomStat[] = showrooms.map((sr) => {
@@ -282,10 +299,15 @@ async function InventarisatieView({ showroomId, showroomName }: { showroomId: st
       include: { article: true },
       orderBy: { nummer: "asc" },
     }),
-    prisma.loan.findMany({
-      where: { showroomId, returnedAt: null, inventoryId: { not: null } },
-      select: { id: true, inventoryId: true, customerName: true, promisedReturnAt: true },
-    }),
+    prisma.loan
+      .findMany({
+        where: { showroomId, returnedAt: null, inventoryId: { not: null } },
+        select: { id: true, inventoryId: true, customerName: true, promisedReturnAt: true },
+      })
+      .catch((e: { code?: string }) => {
+        if (e?.code === "P2021" || e?.code === "P2022") return [];
+        throw e;
+      }),
   ]);
 
   const loanByInventoryId = new Map<string, { id: string; customerName: string; promisedReturnAt: string }>();

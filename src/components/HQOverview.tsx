@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, ChevronRight, AlertCircle, CheckCircle, Minus } from "lucide-react";
+import Link from "next/link";
+import { ChevronDown, ChevronRight, AlertCircle, CheckCircle, Minus, Package } from "lucide-react";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -413,6 +414,164 @@ export function TotaalVerschilOverview({ verschilByShowroom, totalShowrooms }: {
           </div>
         );
       })}
+    </div>
+  );
+}
+
+// ── Uitleningen ───────────────────────────────────────────────────────────────
+
+export type LoanShowroomStat = {
+  id: string;
+  name: string;
+  openCount: number;
+  overdueCount: number;
+};
+
+export type OverdueLoanRow = {
+  id: string;
+  showroomId: string;
+  showroomName: string;
+  itemDescription: string;
+  customerName: string;
+  customerEmail: string | null;
+  customerPhone: string | null;
+  borrowedAt: string;
+  promisedReturnAt: string;
+  daysOverdue: number;
+  verkoperName: string;
+};
+
+function fmtDate(iso: string) {
+  return new Date(iso).toLocaleDateString("nl-NL", { day: "2-digit", month: "2-digit", year: "numeric" });
+}
+
+export function UitleningenOverview({
+  stats,
+  overdue,
+}: {
+  stats: LoanShowroomStat[];
+  overdue: OverdueLoanRow[];
+}) {
+  const totalOpen = stats.reduce((s, x) => s + x.openCount, 0);
+  const totalOverdue = stats.reduce((s, x) => s + x.overdueCount, 0);
+
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-white rounded-xl border border-gray-200 p-5 flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-blue-100 text-blue-700">
+            <Package className="w-6 h-6" />
+          </div>
+          <div>
+            <p className="text-2xl font-bold text-gray-900">{totalOpen}</p>
+            <p className="text-sm text-gray-500">Open uitleningen</p>
+          </div>
+        </div>
+        <div className="bg-white rounded-xl border border-gray-200 p-5 flex items-center gap-4">
+          <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${totalOverdue > 0 ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"}`}>
+            <AlertCircle className="w-6 h-6" />
+          </div>
+          <div>
+            <p className="text-2xl font-bold text-gray-900">{totalOverdue}</p>
+            <p className="text-sm text-gray-500">Te laat</p>
+          </div>
+        </div>
+        <div className="bg-white rounded-xl border border-gray-200 p-5 flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-gray-100 text-gray-700">
+            <Package className="w-6 h-6" />
+          </div>
+          <div>
+            <p className="text-2xl font-bold text-gray-900">{stats.length}</p>
+            <p className="text-sm text-gray-500">Showrooms</p>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h2 className="text-base font-semibold text-gray-900 mb-3">Per showroom</h2>
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 text-xs uppercase text-gray-500">
+              <tr>
+                <th className="text-left px-4 py-3">Showroom</th>
+                <th className="text-right px-4 py-3">Open</th>
+                <th className="text-right px-4 py-3">Te laat</th>
+                <th className="px-4 py-3" />
+              </tr>
+            </thead>
+            <tbody>
+              {stats.map((s) => (
+                <tr key={s.id} className="border-t border-gray-100 hover:bg-gray-50">
+                  <td className="px-4 py-3 font-medium text-gray-900">{s.name}</td>
+                  <td className="px-4 py-3 text-right">{s.openCount}</td>
+                  <td className={`px-4 py-3 text-right font-medium ${s.overdueCount > 0 ? "text-red-700" : "text-gray-700"}`}>
+                    {s.overdueCount}
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <Link
+                      href={`/dashboard/loans?showroom=${s.id}`}
+                      className="text-xs text-blue-700 hover:underline"
+                    >
+                      Bekijk →
+                    </Link>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div>
+        <h2 className="text-base font-semibold text-gray-900 mb-3">
+          Te laat ({overdue.length})
+        </h2>
+        {overdue.length === 0 ? (
+          <div className="bg-white rounded-xl border border-gray-200 p-8 text-center text-gray-400">
+            <CheckCircle className="w-8 h-8 mx-auto mb-2 text-green-500" />
+            Geen te late uitleningen.
+          </div>
+        ) : (
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50 text-xs uppercase text-gray-500">
+                <tr>
+                  <th className="text-left px-4 py-3">Showroom</th>
+                  <th className="text-left px-4 py-3">Staal</th>
+                  <th className="text-left px-4 py-3">Klant</th>
+                  <th className="text-left px-4 py-3">Verkoper</th>
+                  <th className="text-left px-4 py-3">Geleend</th>
+                  <th className="text-left px-4 py-3">Toegezegd</th>
+                  <th className="text-right px-4 py-3">Te laat</th>
+                </tr>
+              </thead>
+              <tbody>
+                {overdue.map((l) => (
+                  <tr key={l.id} className="border-t border-gray-100 hover:bg-gray-50">
+                    <td className="px-4 py-3 text-gray-700">{l.showroomName}</td>
+                    <td className="px-4 py-3 text-gray-900 font-medium">{l.itemDescription}</td>
+                    <td className="px-4 py-3 text-gray-700">
+                      <div className="font-medium">{l.customerName}</div>
+                      <div className="text-xs text-gray-500 space-y-0.5">
+                        {l.customerEmail && <div>{l.customerEmail}</div>}
+                        {l.customerPhone && <div>{l.customerPhone}</div>}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-gray-700">{l.verkoperName}</td>
+                    <td className="px-4 py-3 text-gray-700">{fmtDate(l.borrowedAt)}</td>
+                    <td className="px-4 py-3 text-gray-700">{fmtDate(l.promisedReturnAt)}</td>
+                    <td className="px-4 py-3 text-right">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-red-100 text-red-700 rounded-full text-xs font-medium">
+                        {l.daysOverdue} dag{l.daysOverdue !== 1 ? "en" : ""}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

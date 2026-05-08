@@ -7,16 +7,17 @@ import Link from "next/link";
 import PlanogramView from "@/components/PlanogramView";
 import InventoryTabs from "@/components/InventoryTabs";
 import type { RootGroup, VerschilRoot, ShowFloorVerschilItem } from "@/components/InventoryTabs";
-import { ShowroomsOverview, LeveranciersOverview, VerschilDetail, TotaalVerschilOverview } from "@/components/HQOverview";
-import type { ShowroomStat, SupplierRow, VerschilShowroom } from "@/components/HQOverview";
+import { ShowroomsOverview, LeveranciersOverview, VerschilDetail, TotaalVerschilOverview, UitleningenOverview } from "@/components/HQOverview";
+import type { ShowroomStat, SupplierRow, VerschilShowroom, LoanShowroomStat, OverdueLoanRow } from "@/components/HQOverview";
 
-type View = "overzicht" | "schappenplan" | "inventarisatie" | "verschil";
+type View = "overzicht" | "schappenplan" | "inventarisatie" | "verschil" | "uitleningen";
 
 const VIEWS: { key: View; label: string }[] = [
   { key: "overzicht", label: "Overzicht" },
   { key: "schappenplan", label: "Schappenplan" },
   { key: "inventarisatie", label: "Inventarisatie" },
   { key: "verschil", label: "Verschil" },
+  { key: "uitleningen", label: "Uitleningen" },
 ];
 
 export default async function OverzichtPage({
@@ -30,7 +31,7 @@ export default async function OverzichtPage({
   if (user.role !== "HOOFDKANTOOR") redirect("/dashboard");
 
   const { view: rawView = "overzicht", showroom: showroomParam } = await searchParams;
-  const view: View = (["overzicht", "schappenplan", "inventarisatie", "verschil"].includes(rawView)
+  const view: View = (["overzicht", "schappenplan", "inventarisatie", "verschil", "uitleningen"].includes(rawView)
     ? rawView
     : "overzicht") as View;
 
@@ -113,8 +114,61 @@ export default async function OverzichtPage({
       {view === "schappenplan" && <SchappenplanView showroomId={showroomId} showroomName={selectedShowroom?.name ?? ""} />}
       {view === "inventarisatie" && <InventarisatieView showroomId={showroomId} showroomName={selectedShowroom?.name ?? ""} />}
       {view === "verschil" && <VerschilView showrooms={showrooms} filterShowroomId={showroomParam} />}
+      {view === "uitleningen" && <UitleningenView showrooms={showrooms} />}
     </div>
   );
+}
+
+// ── Uitleningen ───────────────────────────────────────────────────────────────
+
+async function UitleningenView({ showrooms }: { showrooms: { id: string; name: string }[] }) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const [openLoans, overdueLoans] = await Promise.all([
+    prisma.loan.findMany({
+      where: { returnedAt: null },
+      select: { showroomId: true, promisedReturnAt: true },
+    }),
+    prisma.loan.findMany({
+      where: { returnedAt: null, promisedReturnAt: { lt: today } },
+      include: {
+        showroom: { select: { id: true, name: true } },
+        user: { select: { name: true } },
+      },
+      orderBy: { promisedReturnAt: "asc" },
+    }),
+  ]);
+
+  const loanStats: LoanShowroomStat[] = showrooms.map((sr) => {
+    const open = openLoans.filter((l) => l.showroomId === sr.id);
+    const overdue = open.filter((l) => l.promisedReturnAt < today);
+    return {
+      id: sr.id,
+      name: sr.name,
+      openCount: open.length,
+      overdueCount: overdue.length,
+    };
+  });
+
+  const overdueRows: OverdueLoanRow[] = overdueLoans.map((l) => {
+    const days = Math.round((today.getTime() - l.promisedReturnAt.getTime()) / (1000 * 60 * 60 * 24));
+    return {
+      id: l.id,
+      showroomId: l.showroomId,
+      showroomName: l.showroom.name,
+      itemDescription: l.itemDescription,
+      customerName: l.customerName,
+      customerEmail: l.customerEmail,
+      customerPhone: l.customerPhone,
+      borrowedAt: l.borrowedAt.toISOString(),
+      promisedReturnAt: l.promisedReturnAt.toISOString(),
+      daysOverdue: days,
+      verkoperName: l.user.name,
+    };
+  });
+
+  return <UitleningenOverview stats={loanStats} overdue={overdueRows} />;
 }
 
 // ── Overzicht ─────────────────────────────────────────────────────────────────

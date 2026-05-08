@@ -20,6 +20,7 @@ model Showroom {
   showFloors     ShowFloor[]
   inventories    Inventory[]
   salesData      SalesData[]
+  loans          Loan[]
 }
 
 model User {
@@ -33,6 +34,7 @@ model User {
 
   showroom    Showroom?   @relation(fields: [showroomId], references: [id])
   inventories Inventory[]
+  loans       Loan[]
 }
 
 model Category {
@@ -71,6 +73,7 @@ model Article {
   showFloors     ShowFloor[]
   inventories    Inventory[]
   salesData      SalesData[]
+  loans          Loan[]
 
   @@index([categoryId])
   @@index([isActive])
@@ -169,4 +172,30 @@ model SalesData {
 
   @@index([showroomId])
   @@index([articleId])
+}
+
+model Loan {
+  id              String    @id @default(cuid())
+  showroomId      String
+  userId          String
+  articleId       String?
+  itemDescription String
+  customerName    String
+  customerEmail   String?
+  customerPhone   String?
+  customerAddress String?
+  borrowedAt      DateTime  @default(now())
+  promisedReturnAt DateTime
+  returnedAt      DateTime?
+  notes           String?
+  createdAt       DateTime  @default(now())
+
+  showroom Showroom @relation(fields: [showroomId], references: [id])
+  user     User     @relation(fields: [userId], references: [id])
+  article  Article? @relation(fields: [articleId], references: [id])
+
+  @@index([showroomId])
+  @@index([userId])
+  @@index([returnedAt])
+  @@index([showroomId, returnedAt])
 }

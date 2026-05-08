@@ -12,6 +12,7 @@ import {
   BarChart2,
   BookOpen,
   Network,
+  HandCoins,
 } from "lucide-react";
 
 const verkooperLinks = [
@@ -19,6 +20,7 @@ const verkooperLinks = [
   { href: "/dashboard/planogram", label: "Schappenplan", icon: Grid3X3 },
   { href: "/dashboard/inventory", label: "Inventarisatie", icon: ClipboardList },
   { href: "/dashboard/showfloor", label: "Showvloer", icon: LayoutTemplate },
+  { href: "/dashboard/loans", label: "Uitleningen", icon: HandCoins },
   { href: "/dashboard/handleiding", label: "Handleiding", icon: BookOpen },
 ];
 
@@ -27,6 +29,7 @@ const hqLinks = [
   { href: "/dashboard/planogram", label: "Schappenplan", icon: Grid3X3 },
   { href: "/dashboard/inventory", label: "Inventarisatie", icon: ClipboardList },
   { href: "/dashboard/showfloor", label: "Showvloer", icon: LayoutTemplate },
+  { href: "/dashboard/loans", label: "Uitleningen", icon: HandCoins },
   { href: "/dashboard/overzicht", label: "HQ Overzicht", icon: BarChart2 },
   { href: "/dashboard/articles", label: "Artikelen", icon: Package },
   { href: "/dashboard/admin", label: "Beheer", icon: Settings },

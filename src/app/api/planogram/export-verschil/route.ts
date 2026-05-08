@@ -8,6 +8,7 @@ function displayInfo(afmeting: string): { type: string; size: string } {
   if (afmeting === "STROK") return { type: "Strook", size: "" };
   if (afmeting === "100x60") return { type: "Bord", size: "100x60" };
   if (afmeting === "120x60") return { type: "Bord", size: "120x60" };
+  if (afmeting === "staal") return { type: "Staal", size: "" };
   return { type: afmeting || "—", size: "" };
 }
 

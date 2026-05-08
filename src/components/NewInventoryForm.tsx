@@ -34,7 +34,7 @@ interface Showroom { id: string; name: string }
 interface InventoryLine {
   id: number;
   categoryId: string;
-  locatieType: "WAND" | "BOK" | "STROK";
+  locatieType: "WAND" | "BOK" | "STROK" | "STALENKAST";
   locatieNummer: string;
   bordNummer: string;
   displayAfmeting: string;
@@ -116,7 +116,8 @@ export default function NewInventoryForm({
           if (decoded.type !== "BOK") updated.bordNummer = "";
           const cat = leafCats.find((c) => c.id === updated.categoryId);
           if (cat) {
-            updated.displayAfmeting = defaultAfmeting(cat, categories, decoded.type === "BOK" ? "BOK" : "WAND");
+            const afmType = decoded.type === "BOK" || decoded.type === "STALENKAST" ? decoded.type : "WAND";
+            updated.displayAfmeting = defaultAfmeting(cat, categories, afmType);
           }
         }
       } else {
@@ -124,7 +125,8 @@ export default function NewInventoryForm({
         if (field === "categoryId") {
           const cat = leafCats.find((c) => c.id === value);
           if (cat) {
-            updated.displayAfmeting = defaultAfmeting(cat, categories, updated.locatieType === "BOK" ? "BOK" : "WAND");
+            const afmType = updated.locatieType === "BOK" || updated.locatieType === "STALENKAST" ? updated.locatieType : "WAND";
+            updated.displayAfmeting = defaultAfmeting(cat, categories, afmType);
           }
         }
       }
@@ -336,7 +338,8 @@ function AfdelingSection({
                 </td>
                 <td className="px-3 py-1.5">
                   {(() => {
-                    const opts = getAfmetingOptions(cat, allCats, line.locatieType === "BOK" ? "BOK" : "WAND");
+                    const afmType = line.locatieType === "BOK" || line.locatieType === "STALENKAST" ? line.locatieType : "WAND";
+                    const opts = getAfmetingOptions(cat, allCats, afmType);
                     return (
                       <select
                         value={line.displayAfmeting}

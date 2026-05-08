@@ -16,6 +16,7 @@ const TEMPLATE_ROWS = [
   ["SE-002", "BOK", "1", "1", "120x60", ""],
   ["ML-001", "BOK", "2", "1", "120x60", "topproduct"],
   ["LA-001", "STROK", "1", "1", "STROK", ""],
+  ["DU-001", "STALENKAST", "1", "1", "staal", ""],
 ];
 
 function downloadTemplate() {

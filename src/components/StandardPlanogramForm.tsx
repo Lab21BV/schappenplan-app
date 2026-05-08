@@ -23,7 +23,7 @@ interface Showroom { id: string; name: string }
 interface PlanogramLine {
   id: number;
   categoryId: string;
-  locatieType: "WAND" | "BOK" | "STROK";
+  locatieType: "WAND" | "BOK" | "STROK" | "STALENKAST";
   locatieNummer: string;
   positie: string;
   displayAfmeting: string;
@@ -39,9 +39,10 @@ function getLeafCategories(categories: Category[]) {
     .sort((a, b) => a.order - b.order);
 }
 
-function defaultAfmeting(type: "WAND" | "BOK" | "STROK"): string {
+function defaultAfmeting(type: "WAND" | "BOK" | "STROK" | "STALENKAST"): string {
   if (type === "BOK") return "120x60";
   if (type === "STROK") return "STROK";
+  if (type === "STALENKAST") return "staal";
   return "100x60";
 }
 
@@ -266,6 +267,7 @@ function AfdelingSection({
                     <option value="WAND">Wand</option>
                     <option value="BOK">Bok</option>
                     <option value="STROK">Strook</option>
+                    <option value="STALENKAST">Stalenkast</option>
                   </select>
                 </td>
                 <td className="px-3 py-1.5">
@@ -293,6 +295,7 @@ function AfdelingSection({
                     <option value="100x60">Bord 100×60</option>
                     <option value="120x60">Bord 120×60</option>
                     <option value="STROK">Strook</option>
+                    <option value="staal">Staal</option>
                   </select>
                 </td>
                 <td className="px-3 py-1.5">

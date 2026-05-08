@@ -24,7 +24,7 @@ function isUnderRaamdecoratie(cat: CategoryLite, all: CategoryLite[] | undefined
   return false;
 }
 
-export type LocatieType = "WAND" | "BOK" | "STROK";
+export type LocatieType = "WAND" | "BOK" | "STROK" | "STALENKAST";
 
 export interface LocatieOption {
   value: string;
@@ -47,6 +47,10 @@ export const LOCATIE_OPTIONS: LocatieOption[] = [
   { value: "STROK-1", label: "Strook boven",  type: "STROK", nummer: 1 },
   { value: "STROK-2", label: "Strook midden", type: "STROK", nummer: 2 },
   { value: "STROK-3", label: "Strook onder",  type: "STROK", nummer: 3 },
+  { value: "STALENKAST-1", label: "Stalenkast 1", type: "STALENKAST", nummer: 1 },
+  { value: "STALENKAST-2", label: "Stalenkast 2", type: "STALENKAST", nummer: 2 },
+  { value: "STALENKAST-3", label: "Stalenkast 3", type: "STALENKAST", nummer: 3 },
+  { value: "STALENKAST-4", label: "Stalenkast 4", type: "STALENKAST", nummer: 4 },
 ];
 
 export function encodeLocatie(type: string | null | undefined, nummer: number | null | undefined): string {
@@ -105,14 +109,19 @@ export function statusBadgeClass(status: string): string {
 
 /**
  * Options for the "display afmeting" select on inventarisatie / schappenplan,
- * per category and per locatieType (WAND / BOK).
+ * per category and per locatieType (WAND / BOK / STALENKAST).
  */
 export function getAfmetingOptions(
   cat: CategoryLite,
   allCats: CategoryLite[],
-  locatieType: "WAND" | "BOK",
+  locatieType: "WAND" | "BOK" | "STALENKAST",
 ): DisplayOption[] {
   const slug = resolveSlug(cat);
+
+  // Stalenkast — kleine stalen ongeacht categorie
+  if (locatieType === "STALENKAST") {
+    return [{ value: "staal", label: "Staal" }];
+  }
 
   // Gordijnen — kapstaal vs showbaan
   if (slug === "gordijnen") {
@@ -167,6 +176,7 @@ export function labelForAfmeting(value: string | null | undefined): string {
     case "100x60": return "Bord 100×60";
     case "120x60": return "Bord 120×60";
     case "sample": return "Sample";
+    case "staal": return "Staal";
     case "kapstaal": return "Kapstaal";
     case "showbaan": return "Showbaan";
     case "waaier": return "Waaier";
@@ -180,7 +190,7 @@ export function labelForAfmeting(value: string | null | undefined): string {
 export function defaultAfmeting(
   cat: CategoryLite,
   allCats: CategoryLite[],
-  locatieType: "WAND" | "BOK",
+  locatieType: "WAND" | "BOK" | "STALENKAST",
 ): string {
   const opts = getAfmetingOptions(cat, allCats, locatieType);
   return opts[0]?.value ?? "";

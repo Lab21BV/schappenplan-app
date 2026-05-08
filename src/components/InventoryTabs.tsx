@@ -11,6 +11,7 @@ function locatieLabel(locatieType: string | null, locatieNummer: number | null, 
   if (!locatieType) return "—";
   if (locatieType === "STROK") return `Strook ${locatieNummer ?? ""}`.trim();
   if (locatieType === "WAND")  return `Wand ${locatieNummer ?? ""}`.trim();
+  if (locatieType === "STALENKAST") return `Stalenkast ${locatieNummer ?? ""}`.trim();
   if (locatieType === "BOK") {
     const bok = `Bok ${locatieNummer ?? ""}`.trim();
     return bordNummer ? `${bok} / Bord ${bordNummer}` : bok;
@@ -19,9 +20,10 @@ function locatieLabel(locatieType: string | null, locatieNummer: number | null, 
 }
 
 function locatieColor(type: string | null) {
-  if (type === "WAND")  return "bg-purple-100 text-purple-700";
-  if (type === "BOK")   return "bg-blue-100 text-blue-700";
-  if (type === "STROK") return "bg-gray-100 text-gray-600";
+  if (type === "WAND")       return "bg-purple-100 text-purple-700";
+  if (type === "BOK")        return "bg-blue-100 text-blue-700";
+  if (type === "STROK")      return "bg-gray-100 text-gray-600";
+  if (type === "STALENKAST") return "bg-teal-100 text-teal-700";
   return "bg-gray-100 text-gray-500";
 }
 

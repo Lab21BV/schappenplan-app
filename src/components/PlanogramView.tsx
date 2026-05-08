@@ -157,6 +157,7 @@ function locatieLabel(type: string, nummer: number, terms: LocatieTerms) {
   if (type === "WAND") return `${terms.wand} ${nummer}`;
   if (type === "BOK") return `${terms.bok} ${nummer}`;
   if (type === "STROK") return `Strook ${nummer}`;
+  if (type === "STALENKAST") return `Stalenkast ${nummer}`;
   return `${type} ${nummer}`;
 }
 
@@ -164,6 +165,7 @@ function locatieColor(type: string) {
   if (type === "WAND") return "bg-purple-100 text-purple-700";
   if (type === "BOK") return "bg-blue-100 text-blue-700";
   if (type === "STROK") return "bg-gray-100 text-gray-600";
+  if (type === "STALENKAST") return "bg-teal-100 text-teal-700";
   return "bg-gray-100 text-gray-500";
 }
 
@@ -287,7 +289,7 @@ function SubafdelingSection({
     return acc;
   }, {} as Record<string, { type: string; nummer: number; items: PlanogramItem[] }>);
 
-  const typeOrder: Record<string, number> = { WAND: 0, BOK: 1, STROK: 2 };
+  const typeOrder: Record<string, number> = { WAND: 0, BOK: 1, STROK: 2, STALENKAST: 3 };
   const sortedLocaties = Object.values(locatieGroups).sort((a, b) => {
     const diff = (typeOrder[a.type] ?? 3) - (typeOrder[b.type] ?? 3);
     return diff !== 0 ? diff : a.nummer - b.nummer;

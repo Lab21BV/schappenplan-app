@@ -25,7 +25,7 @@ async function main() {
     { id: "cat-pvc-signature", name: "Lijm PVC Vloer Signature",    slug: "lijm-pvc-signature",       parentId: "cat-pvc",   order: 2 },
     { id: "cat-pvc-visgraat",  name: "Visgraat / Hongaarse Punt",   slug: "visgraat-hongaarse-punt",  parentId: "cat-pvc",   order: 3 },
     { id: "cat-pvc-derde1",    name: "Lijm PVC Vloer Derde Merken", slug: "lijm-pvc-derde-merken",   parentId: "cat-pvc",   order: 4 },
-    { id: "cat-pvc-tegels",    name: "Lijm PVC Vloer Tegels",       slug: "lijm-pvc-tegels",          parentId: "cat-pvc",   order: 5 },
+    { id: "cat-pvc-tegels",    name: "PVC Tegels",                  slug: "pvc-tegels",               parentId: "cat-pvc",   order: 5 },
     { id: "cat-pvc-moduleo",   name: "Moduleo",                     slug: "moduleo",                  parentId: "cat-pvc",   order: 6 },
     { id: "cat-pvc-stech",     name: "Klik PVC Vloer S-Tech",       slug: "klik-pvc-stech",           parentId: "cat-pvc",   order: 7 },
     { id: "cat-pvc-easyfit",   name: "Klik PVC Vloer Easyfit",      slug: "klik-pvc-easyfit",         parentId: "cat-pvc",   order: 8 },
@@ -43,7 +43,11 @@ async function main() {
   ];
 
   for (const cat of cats) {
-    await prisma.category.upsert({ where: { id: cat.id }, update: { order: cat.order }, create: cat });
+    await prisma.category.upsert({
+      where: { id: cat.id },
+      update: { name: cat.name, slug: cat.slug, order: cat.order, parentId: cat.parentId },
+      create: cat,
+    });
   }
 
   // ── Articles (2 per leaf category) ────────────────────────────────────────

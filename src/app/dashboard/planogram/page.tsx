@@ -26,20 +26,19 @@ export default async function PlanogramPage({
     ? (allShowrooms.find((s) => s.id === showroomParam)?.id ?? allShowrooms[0]?.id ?? "")
     : (user.showroomId ?? (await prisma.showroom.findFirst())!.id);
 
-  const [allCategories, showroom, displayConfigs] = await Promise.all([
+  const [allCategories, showroom, displayConfigs, planogramItems] = await Promise.all([
     getCategories(),
     prisma.showroom.findUnique({ where: { id: showroomId } }),
     prisma.displayConfig.findMany({
       where: { showroomId },
       include: { category: true },
     }),
+    prisma.planogramItem.findMany({
+      where: { showroomId },
+      include: { article: true },
+      orderBy: [{ locatieType: "asc" }, { locatieNummer: "asc" }, { positie: "asc" }],
+    }),
   ]);
-
-  const planogramItems = await prisma.planogramItem.findMany({
-    where: { showroomId },
-    include: { article: true },
-    orderBy: [{ locatieType: "asc" }, { locatieNummer: "asc" }, { positie: "asc" }],
-  });
 
   const categoryTree = buildCategoryTree(null, allCategories);
 

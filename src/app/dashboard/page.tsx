@@ -10,7 +10,7 @@ export default async function DashboardPage() {
 
   const showroomId = user.showroomId;
 
-  const [articleCount, inventoryCount, planogramCount] = await Promise.all([
+  const [articleCount, inventoryCount, planogramCount, recentInventories, topArticles] = await Promise.all([
     prisma.article.count({ where: { isActive: true } }),
     showroomId
       ? prisma.inventory.count({ where: { showroomId } })
@@ -18,25 +18,19 @@ export default async function DashboardPage() {
     showroomId
       ? prisma.planogramItem.count({ where: { showroomId } })
       : prisma.planogramItem.count(),
+    prisma.inventory.findMany({
+      where: showroomId ? { showroomId } : {},
+      include: { article: true, showroom: true, createdBy: true },
+      orderBy: { createdAt: "desc" },
+      take: 5,
+    }),
+    prisma.article.findMany({
+      where: { isActive: true },
+      orderBy: { priorityScore: "desc" },
+      take: 5,
+      include: { category: true },
+    }),
   ]);
-
-  const recentInventories = await prisma.inventory.findMany({
-    where: showroomId ? { showroomId } : {},
-    include: {
-      article: true,
-      showroom: true,
-      createdBy: true,
-    },
-    orderBy: { createdAt: "desc" },
-    take: 5,
-  });
-
-  const topArticles = await prisma.article.findMany({
-    where: { isActive: true },
-    orderBy: { priorityScore: "desc" },
-    take: 5,
-    include: { category: true },
-  });
 
   const stats = [
     { label: "Actieve artikelen", value: articleCount, icon: Package, color: "bg-blue-100 text-blue-700" },

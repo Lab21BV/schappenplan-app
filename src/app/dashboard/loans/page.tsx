@@ -22,16 +22,22 @@ export default async function LoansPage({
     ? (allShowrooms.find((s) => s.id === showroomParam)?.id ?? allShowrooms[0]?.id ?? "")
     : (user.showroomId ?? (await prisma.showroom.findFirst())!.id);
 
-  const [loans, articles, showroom] = await Promise.all([
+  const [loans, articles, inventoryItems, showroom] = await Promise.all([
     prisma.loan.findMany({
       where: { showroomId },
-      include: { user: true, article: true },
+      include: { user: true, article: true, inventory: true },
       orderBy: [{ returnedAt: "asc" }, { promisedReturnAt: "asc" }],
     }),
     prisma.article.findMany({
       where: { isActive: true },
       select: { id: true, articleNumber: true, articleName: true },
       orderBy: { articleName: "asc" },
+    }),
+    prisma.inventory.findMany({
+      where: { showroomId },
+      include: { article: { select: { articleNumber: true, articleName: true } } },
+      orderBy: [{ locatieType: "asc" }, { locatieNummer: "asc" }, { bordNummer: "asc" }],
+      take: 1000,
     }),
     prisma.showroom.findUnique({ where: { id: showroomId } }),
   ]);
@@ -49,7 +55,20 @@ export default async function LoansPage({
     notes: l.notes,
     articleId: l.articleId,
     article: l.article ? { articleNumber: l.article.articleNumber, articleName: l.article.articleName } : null,
+    inventoryId: l.inventoryId,
+    inventory: l.inventory
+      ? {
+          locatieType: l.inventory.locatieType,
+          locatieNummer: l.inventory.locatieNummer,
+          bordNummer: l.inventory.bordNummer,
+        }
+      : null,
     user: { name: l.user.name },
+  }));
+
+  const inventoryOptions = inventoryItems.map((i) => ({
+    id: i.id,
+    label: `${i.locatieType ?? "-"} ${i.locatieNummer ?? ""}${i.bordNummer ? ` · bord ${i.bordNummer}` : ""} — ${i.article.articleNumber} ${i.article.articleName}`.trim(),
   }));
 
   return (
@@ -79,7 +98,12 @@ export default async function LoansPage({
         </div>
       )}
 
-      <LoansManager loans={loansSerialized} articles={articles} showroomId={showroomId} />
+      <LoansManager
+        loans={loansSerialized}
+        articles={articles}
+        inventoryOptions={inventoryOptions}
+        showroomId={showroomId}
+      />
     </div>
   );
 }

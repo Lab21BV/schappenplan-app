@@ -265,7 +265,7 @@ async function SchappenplanView({ showroomId, showroomName }: { showroomId: stri
 // ── Inventarisatie ────────────────────────────────────────────────────────────
 
 async function InventarisatieView({ showroomId, showroomName }: { showroomId: string; showroomName: string }) {
-  const [inventories, allCategories, planogramItems, showFloors] = await Promise.all([
+  const [inventories, allCategories, planogramItems, showFloors, openLoans] = await Promise.all([
     prisma.inventory.findMany({
       where: { showroomId },
       include: { article: { include: { category: true } }, category: true, showroom: true, createdBy: true },
@@ -282,7 +282,22 @@ async function InventarisatieView({ showroomId, showroomName }: { showroomId: st
       include: { article: true },
       orderBy: { nummer: "asc" },
     }),
+    prisma.loan.findMany({
+      where: { showroomId, returnedAt: null, inventoryId: { not: null } },
+      select: { id: true, inventoryId: true, customerName: true, promisedReturnAt: true },
+    }),
   ]);
+
+  const loanByInventoryId = new Map<string, { id: string; customerName: string; promisedReturnAt: string }>();
+  for (const l of openLoans) {
+    if (l.inventoryId) {
+      loanByInventoryId.set(l.inventoryId, {
+        id: l.id,
+        customerName: l.customerName,
+        promisedReturnAt: l.promisedReturnAt.toISOString(),
+      });
+    }
+  }
 
   function fr(catId: string) { return findRoot(catId, allCategories); }
   function lo(parentId: string | null) { return leafOrder(parentId, allCategories); }
@@ -300,6 +315,7 @@ async function InventarisatieView({ showroomId, showroomName }: { showroomId: st
       stock: inv.stock, notes: inv.notes, createdAt: inv.createdAt.toISOString(),
       article: { articleNumber: inv.article.articleNumber, articleName: inv.article.articleName },
       createdBy: { name: inv.createdBy.name },
+      openLoan: loanByInventoryId.get(inv.id) ?? null,
     });
   }
 

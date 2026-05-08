@@ -39,6 +39,7 @@ export interface InventoryItem {
   displayAfmeting?: string | null;
   article: { articleNumber: string; articleName: string; status?: string; sellingPrice?: number };
   createdBy: { name: string };
+  openLoan?: { id: string; customerName: string; promisedReturnAt: string } | null;
 }
 
 export interface LeafGroup { name: string; items: InventoryItem[] }
@@ -137,9 +138,19 @@ function InventarisatieTab({
                             </div>
                           </td>
                           <td className="px-4 py-2.5">
-                            <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${statusBadgeClass(inv.article.status ?? "Collectie")}`}>
-                              {inv.article.status ?? "Collectie"}
-                            </span>
+                            {inv.openLoan ? (
+                              <Link
+                                href={`/dashboard/loans/${inv.openLoan.id}`}
+                                className="inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-200 hover:bg-amber-200"
+                                title={`Uitgeleend aan ${inv.openLoan.customerName}`}
+                              >
+                                Uitgeleend →
+                              </Link>
+                            ) : (
+                              <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${statusBadgeClass(inv.article.status ?? "Collectie")}`}>
+                                {inv.article.status ?? "Collectie"}
+                              </span>
+                            )}
                           </td>
                           <td className="px-4 py-2.5 text-right text-xs text-gray-700">
                             {typeof inv.article.sellingPrice === "number" ? `€ ${inv.article.sellingPrice.toFixed(2)}` : "—"}

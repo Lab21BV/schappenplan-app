@@ -24,7 +24,7 @@ export default async function InventoryPage({
     ? (allShowrooms.find((s) => s.id === showroomParam)?.id ?? allShowrooms[0]?.id ?? "")
     : (user.showroomId ?? (await prisma.showroom.findFirst())!.id);
 
-  const [inventories, allCategories, planogramItems, showFloors] = await Promise.all([
+  const [inventories, allCategories, planogramItems, showFloors, openLoans] = await Promise.all([
     prisma.inventory.findMany({
       where: { showroomId },
       include: {
@@ -52,7 +52,22 @@ export default async function InventoryPage({
       include: { article: true },
       orderBy: { nummer: "asc" },
     }),
+    prisma.loan.findMany({
+      where: { showroomId, returnedAt: null, inventoryId: { not: null } },
+      select: { id: true, inventoryId: true, customerName: true, promisedReturnAt: true },
+    }),
   ]);
+
+  const loanByInventoryId = new Map<string, { id: string; customerName: string; promisedReturnAt: string }>();
+  for (const l of openLoans) {
+    if (l.inventoryId) {
+      loanByInventoryId.set(l.inventoryId, {
+        id: l.id,
+        customerName: l.customerName,
+        promisedReturnAt: l.promisedReturnAt.toISOString(),
+      });
+    }
+  }
 
   const fr = (catId: string) => findRoot(catId, allCategories);
   const lo = (parentId: string | null) => leafOrder(parentId, allCategories);
@@ -77,6 +92,7 @@ export default async function InventoryPage({
       displayAfmeting: inv.displayAfmeting,
       article: { articleNumber: inv.article.articleNumber, articleName: inv.article.articleName, status: (inv.article as any).status, sellingPrice: inv.article.sellingPrice },
       createdBy: { name: inv.createdBy.name },
+      openLoan: loanByInventoryId.get(inv.id) ?? null,
     });
   }
 

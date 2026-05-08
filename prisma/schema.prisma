@@ -153,6 +153,7 @@ model Inventory {
   article   Article   @relation(fields: [articleId], references: [id])
   category  Category? @relation(fields: [categoryId], references: [id])
   createdBy User      @relation(fields: [createdById], references: [id])
+  loans     Loan[]
 
   @@index([showroomId])
   @@index([articleId])
@@ -179,6 +180,7 @@ model Loan {
   showroomId      String
   userId          String
   articleId       String?
+  inventoryId     String?
   itemDescription String
   customerName    String
   customerEmail   String?
@@ -190,12 +192,14 @@ model Loan {
   notes           String?
   createdAt       DateTime  @default(now())
 
-  showroom Showroom @relation(fields: [showroomId], references: [id])
-  user     User     @relation(fields: [userId], references: [id])
-  article  Article? @relation(fields: [articleId], references: [id])
+  showroom  Showroom   @relation(fields: [showroomId], references: [id])
+  user      User       @relation(fields: [userId], references: [id])
+  article   Article?   @relation(fields: [articleId], references: [id])
+  inventory Inventory? @relation(fields: [inventoryId], references: [id])
 
   @@index([showroomId])
   @@index([userId])
   @@index([returnedAt])
+  @@index([inventoryId])
   @@index([showroomId, returnedAt])
 }

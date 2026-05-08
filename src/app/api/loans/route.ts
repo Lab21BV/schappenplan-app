@@ -22,6 +22,7 @@ export async function POST(req: Request) {
       showroomId,
       userId: user.id,
       articleId: data.articleId || null,
+      inventoryId: data.inventoryId || null,
       itemDescription: String(data.itemDescription).trim(),
       customerName: String(data.customerName).trim(),
       customerEmail: data.customerEmail?.trim() || null,
@@ -68,6 +69,7 @@ export async function PATCH(req: Request) {
       }),
       ...(data.notes !== undefined && { notes: data.notes?.trim() || null }),
       ...(data.articleId !== undefined && { articleId: data.articleId || null }),
+      ...(data.inventoryId !== undefined && { inventoryId: data.inventoryId || null }),
     },
   });
 

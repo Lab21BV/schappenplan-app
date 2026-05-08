@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Plus, Check, Pencil, Trash2, X, AlertCircle } from "lucide-react";
 
@@ -17,10 +18,13 @@ type Loan = {
   notes: string | null;
   articleId: string | null;
   article: { articleNumber: string; articleName: string } | null;
+  inventoryId: string | null;
+  inventory: { locatieType: string | null; locatieNummer: number | null; bordNummer: number | null } | null;
   user: { name: string };
 };
 
 type ArticleOption = { id: string; articleNumber: string; articleName: string };
+type InventoryOption = { id: string; label: string };
 
 type Tab = "open" | "telaat" | "terug";
 
@@ -59,10 +63,12 @@ function in14Days() {
 export default function LoansManager({
   loans,
   articles,
+  inventoryOptions,
   showroomId,
 }: {
   loans: Loan[];
   articles: ArticleOption[];
+  inventoryOptions: InventoryOption[];
   showroomId: string;
 }) {
   const router = useRouter();
@@ -136,6 +142,7 @@ export default function LoansManager({
       {showForm && (
         <LoanForm
           articles={articles}
+          inventoryOptions={inventoryOptions}
           showroomId={showroomId}
           loan={editing}
           onClose={() => { setShowForm(false); setEditing(null); }}
@@ -167,9 +174,17 @@ export default function LoansManager({
                 return (
                   <tr key={l.id} className="border-t border-gray-100 hover:bg-gray-50">
                     <td className="px-4 py-3">
-                      <div className="font-medium text-gray-900">{l.itemDescription}</div>
+                      <Link href={`/dashboard/loans/${l.id}`} className="font-medium text-gray-900 hover:text-blue-700 hover:underline">
+                        {l.itemDescription}
+                      </Link>
                       {l.article && (
                         <div className="text-xs text-gray-500">{l.article.articleNumber} · {l.article.articleName}</div>
+                      )}
+                      {l.inventory && (
+                        <div className="text-xs text-gray-400">
+                          {l.inventory.locatieType} {l.inventory.locatieNummer}
+                          {l.inventory.bordNummer ? ` · bord ${l.inventory.bordNummer}` : ""}
+                        </div>
                       )}
                     </td>
                     <td className="px-4 py-3">
@@ -245,12 +260,14 @@ export default function LoansManager({
 
 function LoanForm({
   articles,
+  inventoryOptions,
   showroomId,
   loan,
   onClose,
   onSaved,
 }: {
   articles: ArticleOption[];
+  inventoryOptions: InventoryOption[];
   showroomId: string;
   loan: Loan | null;
   onClose: () => void;
@@ -260,6 +277,7 @@ function LoanForm({
   const [error, setError] = useState<string | null>(null);
 
   const [articleId, setArticleId] = useState<string>(loan?.articleId ?? "");
+  const [inventoryId, setInventoryId] = useState<string>(loan?.inventoryId ?? "");
   const [itemDescription, setItemDescription] = useState(loan?.itemDescription ?? "");
   const [customerName, setCustomerName] = useState(loan?.customerName ?? "");
   const [customerEmail, setCustomerEmail] = useState(loan?.customerEmail ?? "");
@@ -282,6 +300,7 @@ function LoanForm({
     const body: Record<string, unknown> = {
       showroomId,
       articleId: articleId || null,
+      inventoryId: inventoryId || null,
       itemDescription,
       customerName,
       customerEmail,
@@ -321,6 +340,22 @@ function LoanForm({
       </div>
 
       <form onSubmit={submit} className="space-y-4">
+        <div>
+          <label className="block text-xs font-medium text-gray-700 mb-1">
+            Inventaris-item (optioneel — kies om de status &apos;Uitgeleend&apos; in inventarisatie te tonen)
+          </label>
+          <select
+            value={inventoryId}
+            onChange={(e) => setInventoryId(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">— niet gekoppeld aan inventarisatie —</option>
+            {inventoryOptions.map((i) => (
+              <option key={i.id} value={i.id}>{i.label}</option>
+            ))}
+          </select>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">Staal / omschrijving *</label>

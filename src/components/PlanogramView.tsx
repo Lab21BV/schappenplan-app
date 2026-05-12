@@ -154,10 +154,20 @@ function ConfigEditor({ config, showroomId, categoryId, terms }: ConfigEditorPro
 }
 
 function locatieLabel(type: string, nummer: number, terms: LocatieTerms) {
-  if (type === "WAND") return `${terms.wand} ${nummer}`;
+  if (type === "WAND") {
+    if (terms.wand !== "Wand") return `${terms.wand} ${nummer}`;
+    if (nummer === 1) return "Wand boven";
+    if (nummer === 2) return "Wand onder";
+    return `Wand ${nummer}`;
+  }
   if (type === "BOK") return `${terms.bok} ${nummer}`;
-  if (type === "STROK") return `Strook ${nummer}`;
-  if (type === "STALENKAST") return `Stalenkast ${nummer}`;
+  if (type === "STROK") {
+    if (nummer === 1) return "Strook boven";
+    if (nummer === 2) return "Strook midden";
+    if (nummer === 3) return "Strook onder";
+    return `Strook ${nummer}`;
+  }
+  if (type === "STALENKAST") return `Stalenkast rij ${nummer}`;
   return `${type} ${nummer}`;
 }
 

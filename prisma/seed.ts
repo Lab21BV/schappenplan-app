@@ -31,6 +31,7 @@ async function main() {
     { id: "cat-pvc-easyfit",   name: "Klik PVC Vloer Easyfit",      slug: "klik-pvc-easyfit",         parentId: "cat-pvc",   order: 8 },
     { id: "cat-pvc-klik3",     name: "Klik PVC Vloer Derde Merken", slug: "klik-pvc-derde-merken",   parentId: "cat-pvc",   order: 9 },
     { id: "cat-pvc-warm",      name: "PVC Vloer Warme Tinten",      slug: "pvc-vloer-warme-tinten",   parentId: "cat-pvc",   order: 10 },
+    { id: "cat-pvc-warmbok",   name: "Warme Tinten Bok",            slug: "warme-tinten-bok",         parentId: "cat-pvc",   order: 11 },
     { id: "cat-gordijnen",     name: "Gordijnen",                   slug: "gordijnen",                parentId: "cat-raam",  order: 1 },
     { id: "cat-hard",          name: "Harde Raamdecoratie",         slug: "harde-raamdecoratie",      parentId: "cat-raam",  order: 2 },
     { id: "cat-duette",        name: "Duette (Plissegordijnen)",    slug: "duette-plissegordijnen",   parentId: "cat-hard",  order: 1 },
@@ -149,7 +150,7 @@ async function main() {
   const leafCatIds = [
     "cat-pvc-sensation","cat-pvc-signature","cat-pvc-visgraat","cat-pvc-derde1",
     "cat-pvc-tegels","cat-pvc-moduleo","cat-pvc-stech","cat-pvc-easyfit","cat-pvc-klik3",
-    "cat-pvc-warm",
+    "cat-pvc-warm","cat-pvc-warmbok",
     "cat-laminaat","cat-hout",
     "cat-gordijnen","cat-duette","cat-alu","cat-houtjal","cat-rolgor","cat-vouwgor",
     "cat-trap-hpl","cat-trap-pvc","cat-trap-lijm",
@@ -158,7 +159,7 @@ async function main() {
   const vloerLeafCatIds = new Set([
     "cat-pvc-sensation","cat-pvc-signature","cat-pvc-visgraat","cat-pvc-derde1",
     "cat-pvc-tegels","cat-pvc-moduleo","cat-pvc-stech","cat-pvc-easyfit","cat-pvc-klik3",
-    "cat-pvc-warm",
+    "cat-pvc-warm","cat-pvc-warmbok",
     "cat-laminaat","cat-hout",
   ]);
 

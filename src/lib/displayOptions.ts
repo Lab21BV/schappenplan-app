@@ -47,10 +47,13 @@ export const LOCATIE_OPTIONS: LocatieOption[] = [
   { value: "STROK-1", label: "Strook boven",  type: "STROK", nummer: 1 },
   { value: "STROK-2", label: "Strook midden", type: "STROK", nummer: 2 },
   { value: "STROK-3", label: "Strook onder",  type: "STROK", nummer: 3 },
-  { value: "STALENKAST-1", label: "Stalenkast 1", type: "STALENKAST", nummer: 1 },
-  { value: "STALENKAST-2", label: "Stalenkast 2", type: "STALENKAST", nummer: 2 },
-  { value: "STALENKAST-3", label: "Stalenkast 3", type: "STALENKAST", nummer: 3 },
-  { value: "STALENKAST-4", label: "Stalenkast 4", type: "STALENKAST", nummer: 4 },
+  { value: "STALENKAST-1", label: "Stalenkast rij 1", type: "STALENKAST", nummer: 1 },
+  { value: "STALENKAST-2", label: "Stalenkast rij 2", type: "STALENKAST", nummer: 2 },
+  { value: "STALENKAST-3", label: "Stalenkast rij 3", type: "STALENKAST", nummer: 3 },
+  { value: "STALENKAST-4", label: "Stalenkast rij 4", type: "STALENKAST", nummer: 4 },
+  { value: "STALENKAST-5", label: "Stalenkast rij 5", type: "STALENKAST", nummer: 5 },
+  { value: "STALENKAST-6", label: "Stalenkast rij 6", type: "STALENKAST", nummer: 6 },
+  { value: "STALENKAST-7", label: "Stalenkast rij 7", type: "STALENKAST", nummer: 7 },
 ];
 
 export function encodeLocatie(type: string | null | undefined, nummer: number | null | undefined): string {

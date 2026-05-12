@@ -9,9 +9,18 @@ import { statusBadgeClass } from "@/lib/displayOptions";
 
 function locatieLabel(locatieType: string | null, locatieNummer: number | null, bordNummer?: number | null) {
   if (!locatieType) return "—";
-  if (locatieType === "STROK") return `Strook ${locatieNummer ?? ""}`.trim();
-  if (locatieType === "WAND")  return `Wand ${locatieNummer ?? ""}`.trim();
-  if (locatieType === "STALENKAST") return `Stalenkast ${locatieNummer ?? ""}`.trim();
+  if (locatieType === "STROK") {
+    if (locatieNummer === 1) return "Strook boven";
+    if (locatieNummer === 2) return "Strook midden";
+    if (locatieNummer === 3) return "Strook onder";
+    return `Strook ${locatieNummer ?? ""}`.trim();
+  }
+  if (locatieType === "WAND") {
+    if (locatieNummer === 1) return "Wand boven";
+    if (locatieNummer === 2) return "Wand onder";
+    return `Wand ${locatieNummer ?? ""}`.trim();
+  }
+  if (locatieType === "STALENKAST") return `Stalenkast rij ${locatieNummer ?? ""}`.trim();
   if (locatieType === "BOK") {
     const bok = `Bok ${locatieNummer ?? ""}`.trim();
     return bordNummer ? `${bok} / Bord ${bordNummer}` : bok;

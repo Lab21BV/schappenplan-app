@@ -18,11 +18,14 @@ export async function GET(req: Request) {
 
   const items = await prisma.planogramItem.findMany({
     where: { showroomId },
-    include: { article: { select: { articleNumber: true } } },
+    include: {
+      article: { select: { articleNumber: true } },
+      category: { select: { slug: true } },
+    },
     orderBy: [{ locatieType: "asc" }, { locatieNummer: "asc" }, { positie: "asc" }],
   });
 
-  const header = "artikelnummer;locatie_type;locatie_nummer;positie;display_afmeting;notities";
+  const header = "artikelnummer;locatie_type;locatie_nummer;positie;display_afmeting;afdeling;notities";
   const rows = items.map((item) =>
     [
       item.article.articleNumber,
@@ -30,6 +33,7 @@ export async function GET(req: Request) {
       item.locatieNummer,
       item.positie,
       item.displayAfmeting,
+      item.category?.slug ?? "",
       item.notes ?? "",
     ].join(";")
   );

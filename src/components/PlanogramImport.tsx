@@ -11,12 +11,23 @@ interface Props {
 }
 
 const TEMPLATE_ROWS = [
-  ["artikelnummer", "locatie_type", "locatie_nummer", "positie", "display_afmeting", "notities"],
-  ["SE-001", "WAND", "1", "1", "100x60", ""],
-  ["SE-002", "BOK", "1", "1", "120x60", ""],
-  ["ML-001", "BOK", "2", "1", "120x60", "topproduct"],
-  ["LA-001", "STROK", "1", "1", "STROK", ""],
-  ["DU-001", "STALENKAST", "1", "1", "staal", ""],
+  ["artikelnummer", "locatie_type", "locatie_nummer", "positie", "display_afmeting", "afdeling", "notities"],
+  // Vloer — PVC / Laminaat / Houten Vloer
+  ["SE-001", "WAND", "1", "1", "100x60", "pvc-vloer", ""],
+  ["SE-002", "BOK", "1", "1", "120x60", "pvc-vloer", ""],
+  ["LA-001", "BOK", "2", "1", "60x40", "laminaat", "Bord 60×40"],
+  ["LA-002", "STROK", "1", "1", "STROK", "laminaat", ""],
+  ["HV-001", "WAND", "2", "1", "100x60", "houten-vloer", ""],
+  // Raamdecoratie
+  ["DU-001", "STALENKAST", "1", "1", "staal", "duette", ""],
+  ["RG-001", "WAND", "1", "1", "sample", "rolgordijn", ""],
+  ["GO-001", "BOK", "1", "1", "showbaan", "gordijnen", ""],
+  // Trap
+  ["TH-001", "WAND", "1", "1", "traprenovatiedisplay", "reno-trap-hpl", ""],
+  ["TP-001", "WAND", "1", "1", "renotrap-21x19", "reno-trap-pvc", "Renotrap 21×19"],
+  // Warme tinten bok — meerdere artikelen op 1 bok, vast op afdeling
+  ["ML-001", "BOK", "4", "1", "120x60", "merken-warm",  "warme tinten bok"],
+  ["ML-002", "BOK", "4", "2", "120x60", "merken-warm",  "warme tinten bok"],
 ];
 
 function downloadTemplate() {
@@ -93,6 +104,7 @@ export default function PlanogramImport({ showrooms, isHQ }: Props) {
 
       <p className="text-xs text-gray-500">
         Upload een Excel (.xlsx) of CSV-bestand. Het huidige schappenplan van de geselecteerde showroom wordt volledig vervangen.
+        Optionele kolom <span className="font-mono">afdeling</span> (slug, id of naam) pint een regel vast op een specifieke afdeling — handig voor bv. een warme-tinten bok met artikelen uit meerdere categorieën.
       </p>
 
       {isHQ && showrooms.length > 1 && (

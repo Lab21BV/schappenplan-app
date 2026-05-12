@@ -134,11 +134,12 @@ export function getAfmetingOptions(
     ];
   }
 
-  // Reno trap HPL & PVC — traprenovatiedisplay vs staal 19×21
+  // Reno trap HPL & PVC — traprenovatiedisplay vs staal 19×21 vs renotrap 21×19
   if (slug === "reno-trap-hpl" || slug === "reno-trap-pvc") {
     return [
       { value: "traprenovatiedisplay", label: "Traprenovatiedisplay" },
       { value: "staal-19x21", label: "Staal 19×21 cm" },
+      { value: "renotrap-21x19", label: "Renotrap 21×19 cm" },
     ];
   }
 
@@ -162,7 +163,22 @@ export function getAfmetingOptions(
     ];
   }
 
-  // Default (vloer / laminaat / etc.)
+  // Laminaat — voeg "60x40" toe
+  if (slug === "laminaat") {
+    if (locatieType === "WAND") {
+      return [
+        { value: "strook", label: "Strook" },
+        { value: "100x60", label: "Bord 100×60" },
+        { value: "60x40", label: "Bord 60×40" },
+      ];
+    }
+    return [
+      { value: "120x60", label: "Bord 120×60" },
+      { value: "60x40", label: "Bord 60×40" },
+    ];
+  }
+
+  // Default (vloer / etc.)
   if (locatieType === "WAND") {
     return [
       { value: "strook", label: "Strook" },
@@ -184,6 +200,8 @@ export function labelForAfmeting(value: string | null | undefined): string {
     case "showbaan": return "Showbaan";
     case "waaier": return "Waaier";
     case "staal-19x21": return "Staal 19×21 cm";
+    case "renotrap-21x19": return "Renotrap 21×19 cm";
+    case "60x40": return "Bord 60×40";
     case "traprenovatiedisplay": return "Traprenovatiedisplay";
     case "STROK": return "Strook";
     default: return value;

@@ -13,6 +13,7 @@ import {
   BookOpen,
   Network,
   HandCoins,
+  FileBarChart,
 } from "lucide-react";
 
 const verkooperLinks = [
@@ -31,6 +32,7 @@ const hqLinks = [
   { href: "/dashboard/showfloor", label: "Showvloer", icon: LayoutTemplate },
   { href: "/dashboard/loans", label: "Uitleningen", icon: HandCoins },
   { href: "/dashboard/overzicht", label: "HQ Overzicht", icon: BarChart2 },
+  { href: "/dashboard/rapporten", label: "Rapporten", icon: FileBarChart },
   { href: "/dashboard/articles", label: "Artikelen", icon: Package },
   { href: "/dashboard/admin", label: "Beheer", icon: Settings },
   { href: "/dashboard/werking", label: "Werking & flow", icon: Network },

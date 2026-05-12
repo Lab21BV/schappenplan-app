@@ -71,28 +71,55 @@ const LOCATIE_BY_VALUE = new Map(LOCATIE_OPTIONS.map((o) => [o.value.toUpperCase
 const normLabel = (s: string) => s.toLowerCase().replace(/\s+/g, " ").trim();
 const LOCATIE_BY_LABEL = new Map(LOCATIE_OPTIONS.map((o) => [normLabel(o.label), o]));
 
+export type LocatieParseResult =
+  | { ok: true; type: LocatieType; nummer: number }
+  | { ok: false; error: string };
+
 // Accept "WAND" / "BOK" / "STROK" + nummer, combined "WAND-1", or labels like "Wand boven".
+// Belangrijk: als locatie_type een label is dat al een nummer bevat (bv. "Bok 1",
+// "Strook boven", "Stalenkast rij 3"), én rawNummer wijkt af van dat impliciete
+// nummer, dan is dit ambigu — voorheen werd rawNummer dan stil weggegooid, waardoor
+// rijen uit verschillende afdelingen onder dezelfde locatie samenklonterden.
+export function parseLocatieStrict(rawType: string, rawNummer: string): LocatieParseResult {
+  const t = rawType.trim();
+  if (!t) return { ok: false, error: "locatie_type is leeg" };
+  const upper = t.toUpperCase();
+  const rawNumTrim = rawNummer.trim();
+  const rawNumParsed = rawNumTrim === "" ? null : parseInt(rawNumTrim, 10);
+  const rawNumValid = rawNumParsed !== null && !isNaN(rawNumParsed) && rawNumParsed >= 1;
+
+  // Pure type ("BOK", "STROK", "WAND", "STALENKAST")
+  if (LOCATIE_TYPES.has(upper as LocatieType)) {
+    if (rawNumParsed === null) return { ok: true, type: upper as LocatieType, nummer: 1 };
+    if (!rawNumValid) return { ok: false, error: `locatie_nummer "${rawNummer}" ongeldig` };
+    return { ok: true, type: upper as LocatieType, nummer: rawNumParsed };
+  }
+
+  const labelMatch = LOCATIE_BY_VALUE.get(upper) ?? LOCATIE_BY_LABEL.get(normLabel(t));
+  if (labelMatch) {
+    if (rawNumParsed === null || rawNumParsed === labelMatch.nummer) {
+      return { ok: true, type: labelMatch.type, nummer: labelMatch.nummer };
+    }
+    return {
+      ok: false,
+      error:
+        `locatie_type "${t}" houdt al locatie_nummer ${labelMatch.nummer} in, ` +
+        `maar de kolom locatie_nummer is ${rawNumParsed}. ` +
+        `Gebruik óf alleen "${labelMatch.type}" als locatie_type met locatie_nummer = bok/strook-index binnen de afdeling, ` +
+        `óf vul de "afdeling"-kolom in om de afdeling expliciet te koppelen.`,
+    };
+  }
+
+  return { ok: false, error: `locatie_type "${t}" niet herkend (gebruik WAND, BOK, STROK of STALENKAST, of een label zoals "Wand boven")` };
+}
+
+// Backwards-compatible wrapper — returns null on any failure.
 export function parseLocatie(
   rawType: string,
   rawNummer: string,
 ): { type: LocatieType; nummer: number } | null {
-  const t = rawType.trim();
-  if (!t) return null;
-  const upper = t.toUpperCase();
-
-  if (LOCATIE_TYPES.has(upper as LocatieType)) {
-    const num = parseInt(rawNummer.trim() || "1", 10);
-    if (isNaN(num) || num < 1) return null;
-    return { type: upper as LocatieType, nummer: num };
-  }
-
-  const byValue = LOCATIE_BY_VALUE.get(upper);
-  if (byValue) return { type: byValue.type, nummer: byValue.nummer };
-
-  const byLabel = LOCATIE_BY_LABEL.get(normLabel(t));
-  if (byLabel) return { type: byLabel.type, nummer: byLabel.nummer };
-
-  return null;
+  const r = parseLocatieStrict(rawType, rawNummer);
+  return r.ok ? { type: r.type, nummer: r.nummer } : null;
 }
 
 export function labelForLocatie(type: string | null | undefined, nummer: number | null | undefined): string {

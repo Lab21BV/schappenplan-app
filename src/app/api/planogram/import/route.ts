@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import * as XLSX from "xlsx";
-import { parseLocatie } from "@/lib/displayOptions";
+import { parseLocatieStrict } from "@/lib/displayOptions";
 
 const VALID_AFMETINGEN = new Set([
   "100x60", "120x60", "60x40", "STROK", "staal",
@@ -96,8 +96,9 @@ export async function POST(req: Request) {
     ).trim();
 
     if (!articleNumber) { errors.push(`Rij ${rowNr}: artikelnummer ontbreekt`); continue; }
-    const loc = parseLocatie(rawLocatieType, rawLocatieNummer);
-    if (!loc) { errors.push(`Rij ${rowNr}: locatie_type "${rawLocatieType.trim()}" ongeldig (gebruik WAND, BOK, STROK of STALENKAST, of een label zoals "Wand boven")`); continue; }
+    const locResult = parseLocatieStrict(rawLocatieType, rawLocatieNummer);
+    if (!locResult.ok) { errors.push(`Rij ${rowNr}: ${locResult.error}`); continue; }
+    const loc = { type: locResult.type, nummer: locResult.nummer };
     if (!VALID_AFMETINGEN.has(displayAfmeting)) { errors.push(`Rij ${rowNr}: display_afmeting "${displayAfmeting}" ongeldig (gebruik 100x60, 120x60, STROK of staal)`); continue; }
     if (isNaN(positie) || positie < 1) { errors.push(`Rij ${rowNr}: positie ongeldig`); continue; }
 

@@ -23,9 +23,9 @@ export default async function NieuwSchappenplanPage() {
   ]);
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Standaard schappenplan invullen</h1>
+    <div className="space-y-6 max-lg:space-y-5 max-lg:pb-2">
+      <div className="mobile-fade-in">
+        <h1 className="text-2xl max-lg:text-xl font-bold text-gray-900">Standaard schappenplan invullen</h1>
         <p className="text-gray-500 text-sm mt-1">Voeg artikelen toe per locatie en positie</p>
       </div>
       <StandardPlanogramForm

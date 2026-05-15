@@ -339,7 +339,8 @@ function SubafdelingSection({
                 </span>
                 <span className="text-xs text-gray-400">{locatie.items.length} positie{locatie.items.length !== 1 ? "s" : ""}</span>
               </div>
-              <table className="w-full text-sm">
+              <div className="overflow-x-auto no-scrollbar scroll-edge-fade">
+              <table className="w-full text-sm min-w-[980px]">
                 <thead>
                   <tr className="text-xs text-gray-400 border-b border-gray-100">
                     <th className="text-left pb-1.5 pr-4 font-medium w-14">Pos.</th>
@@ -412,6 +413,7 @@ function SubafdelingSection({
                     ))}
                 </tbody>
               </table>
+              </div>
             </div>
           ))}
         </div>

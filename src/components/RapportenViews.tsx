@@ -94,7 +94,8 @@ export function OntbreektStalenReport({
               </span>
             </button>
             {open && (
-              <table className="w-full text-xs">
+              <div className="overflow-x-auto no-scrollbar scroll-edge-fade">
+              <table className="w-full text-xs min-w-[980px]">
                 <thead className="bg-gray-50 text-gray-500 uppercase">
                   <tr>
                     <th className="text-left px-4 py-2">Artikel</th>
@@ -141,6 +142,7 @@ export function OntbreektStalenReport({
                   ))}
                 </tbody>
               </table>
+              </div>
             )}
           </div>
         );
@@ -190,7 +192,8 @@ export function GhostStalenReport({ rows }: { rows: GhostRow[] }) {
         <EmptyState>Geen losse stalen.</EmptyState>
       ) : (
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <table className="w-full text-xs">
+          <div className="overflow-x-auto no-scrollbar scroll-edge-fade">
+          <table className="w-full text-xs min-w-[920px]">
             <thead className="bg-amber-50 text-amber-900 uppercase">
               <tr>
                 <th className="text-left px-4 py-2">Showroom</th>
@@ -225,6 +228,7 @@ export function GhostStalenReport({ rows }: { rows: GhostRow[] }) {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </div>
@@ -278,7 +282,8 @@ export function StalenVerdelenReport({
         <EmptyState>Geen herverdeel-acties nodig.</EmptyState>
       ) : (
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <table className="w-full text-xs">
+          <div className="overflow-x-auto no-scrollbar scroll-edge-fade">
+          <table className="w-full text-xs min-w-[920px]">
             <thead className="bg-gray-50 text-gray-500 uppercase">
               <tr>
                 <th className="text-left px-4 py-2">Artikel</th>
@@ -307,6 +312,7 @@ export function StalenVerdelenReport({
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </div>
@@ -376,7 +382,8 @@ export function UitCollectieReport({ rows }: { rows: UitCollectieRow[] }) {
                 </span>
               </button>
               {open && (
-                <table className="w-full text-xs">
+                <div className="overflow-x-auto no-scrollbar scroll-edge-fade">
+                <table className="w-full text-xs min-w-[900px]">
                   <thead className="bg-gray-50 text-gray-500 uppercase">
                     <tr>
                       <th className="text-left px-4 py-2">Bron</th>
@@ -410,6 +417,7 @@ export function UitCollectieReport({ rows }: { rows: UitCollectieRow[] }) {
                     ))}
                   </tbody>
                 </table>
+                </div>
               )}
             </div>
           );
@@ -468,7 +476,8 @@ export function OmzetReport({
       />
       <SearchInput value={q} onChange={setQ} placeholder="Zoek artikel of leverancier..." />
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <table className="w-full text-xs">
+        <div className="overflow-x-auto no-scrollbar scroll-edge-fade">
+        <table className="w-full text-xs min-w-[980px]">
           <thead className="bg-gray-50 text-gray-500 uppercase">
             <tr>
               <th className="text-left px-4 py-2">Artikel</th>
@@ -518,6 +527,7 @@ export function OmzetReport({
             })}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );

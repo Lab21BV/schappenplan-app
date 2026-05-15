@@ -34,9 +34,10 @@ interface PlanogramLine {
 let lineCounter = 1;
 
 function getLeafCategories(categories: Category[]) {
-  return categories
+  const leaves = categories
     .filter((c) => !categories.some((cc) => cc.parentId === c.id))
     .sort((a, b) => a.order - b.order);
+  return leaves.length > 0 ? leaves : categories;
 }
 
 function defaultAfmeting(type: "WAND" | "BOK" | "STROK" | "STALENKAST"): string {
@@ -58,7 +59,10 @@ export default function StandardPlanogramForm({
   defaultShowroomId: string;
 }) {
   const router = useRouter();
-  const leafCats = getLeafCategories(categories);
+  const derivedLeafCats: Category[] = Array.from(
+    new Map(articles.map((a, idx) => [a.category.id, { id: a.category.id, name: a.category.name, parentId: null, order: idx } as Category])).values()
+  );
+  const leafCats = getLeafCategories(categories).length > 0 ? getLeafCategories(categories) : derivedLeafCats;
   const firstCatId = leafCats[0]?.id ?? "";
   const firstArticle = articles[0]?.id ?? "";
 
@@ -97,7 +101,8 @@ export default function StandardPlanogramForm({
       if (l.id !== id) return l;
       const updated = { ...l, [field]: value };
       if (field === "locatieType") {
-        updated.displayAfmeting = defaultAfmeting(value as any);
+        const typedLocatie = value as PlanogramLine["locatieType"];
+        updated.displayAfmeting = defaultAfmeting(typedLocatie);
       }
       return updated;
     }));
@@ -125,21 +130,21 @@ export default function StandardPlanogramForm({
       });
       if (!res.ok) throw new Error(await res.text());
       router.push("/dashboard/planogram");
-    } catch (e: any) {
-      setError(e.message || "Er is een fout opgetreden");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Er is een fout opgetreden");
       setSaving(false);
     }
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 max-lg:space-y-4">
       {showrooms.length > 1 && (
-        <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-4">
+        <div className="bg-white rounded-xl border border-gray-200 p-4 max-lg:p-3 flex items-center gap-4 max-lg:flex-col max-lg:items-start max-lg:gap-2 mobile-fade-in">
           <label className="text-sm font-medium text-gray-700">Showroom</label>
           <select
             value={showroomId}
             onChange={(e) => setShowroomId(e.target.value)}
-            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 max-lg:w-full max-lg:py-3"
           >
             {showrooms.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
           </select>
@@ -165,12 +170,12 @@ export default function StandardPlanogramForm({
         })}
       </div>
 
-      <div className="flex gap-2 flex-wrap">
+      <div className="flex gap-2 flex-wrap max-lg:overflow-x-auto max-lg:no-scrollbar max-lg:pb-1">
         {leafCats.map((cat, i) => (
           <button
             key={cat.id}
             onClick={() => addLine(cat.id)}
-            className="flex items-center gap-1.5 text-xs px-3 py-1.5 border border-blue-200 text-blue-700 rounded-lg hover:bg-blue-50"
+            className="flex items-center gap-1.5 text-xs px-3 py-1.5 max-lg:py-3 border border-blue-200 text-blue-700 rounded-lg hover:bg-blue-50 max-lg:whitespace-nowrap mobile-animate-fast"
           >
             <Plus className="w-3 h-3" /> Afd. {i + 1} {cat.name}
           </button>
@@ -181,17 +186,17 @@ export default function StandardPlanogramForm({
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">{error}</div>
       )}
 
-      <div className="flex justify-end gap-3">
+      <div className="flex justify-end gap-3 max-lg:flex-col">
         <button
           onClick={() => router.push("/dashboard/planogram")}
-          className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50"
+          className="px-4 py-2 max-lg:py-3 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50 mobile-animate-fast"
         >
           Annuleren
         </button>
         <button
           onClick={handleSave}
           disabled={saving || lines.length === 0}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-700 text-white rounded-lg text-sm font-medium hover:bg-blue-800 disabled:opacity-60"
+          className="flex items-center justify-center gap-2 px-4 py-2 max-lg:py-3 bg-blue-700 text-white rounded-lg text-sm font-medium hover:bg-blue-800 disabled:opacity-60 mobile-animate-fast"
         >
           <Save className="w-4 h-4" />
           {saving ? "Opslaan..." : `Opslaan (${lines.length} regel${lines.length !== 1 ? "s" : ""})`}
@@ -219,9 +224,9 @@ function AfdelingSection({
   if (lines.length === 0) return null;
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden mobile-fade-in">
       <div
-        className="flex items-center justify-between px-4 py-3 bg-blue-50 cursor-pointer select-none"
+        className="flex items-center justify-between px-4 py-3 max-lg:px-3.5 max-lg:py-2.5 bg-blue-50 cursor-pointer select-none"
         onClick={() => setOpen(!open)}
       >
         <div className="flex items-center gap-3">
@@ -234,7 +239,7 @@ function AfdelingSection({
         <div className="flex items-center gap-2">
           <button
             onClick={(e) => { e.stopPropagation(); onAddLine(); }}
-            className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 px-2 py-1 rounded hover:bg-blue-100"
+            className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 px-2 py-1 rounded hover:bg-blue-100 mobile-animate-fast"
           >
             <Plus className="w-3 h-3" /> Regel
           </button>
@@ -243,7 +248,8 @@ function AfdelingSection({
       </div>
 
       {open && (
-        <table className="w-full text-sm">
+        <div className="overflow-x-auto no-scrollbar scroll-edge-fade max-lg:px-1">
+        <table className="w-full text-sm max-lg:text-xs max-lg:min-w-[760px]">
           <thead className="bg-gray-50 border-b border-gray-100">
             <tr>
               <th className="text-left px-3 py-2 font-medium text-gray-600 text-xs">Locatie</th>
@@ -257,12 +263,12 @@ function AfdelingSection({
           </thead>
           <tbody className="divide-y divide-gray-50">
             {lines.map((line) => (
-              <tr key={line.id} className="hover:bg-gray-50">
+              <tr key={line.id} className="hover:bg-gray-50 mobile-animate-fast">
                 <td className="px-3 py-1.5">
                   <select
                     value={line.locatieType}
                     onChange={(e) => onUpdateLine(line.id, "locatieType", e.target.value)}
-                    className="border border-gray-200 rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="border border-gray-200 rounded px-2 py-1 text-xs max-lg:h-8 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   >
                     <option value="WAND">Wand</option>
                     <option value="BOK">Bok</option>
@@ -275,7 +281,7 @@ function AfdelingSection({
                     type="number" min="1"
                     value={line.locatieNummer}
                     onChange={(e) => onUpdateLine(line.id, "locatieNummer", e.target.value)}
-                    className="w-14 border border-gray-200 rounded px-2 py-1 text-xs text-center focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="w-14 border border-gray-200 rounded px-2 py-1 text-xs text-center max-lg:h-8 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   />
                 </td>
                 <td className="px-3 py-1.5">
@@ -283,14 +289,14 @@ function AfdelingSection({
                     type="number" min="1"
                     value={line.positie}
                     onChange={(e) => onUpdateLine(line.id, "positie", e.target.value)}
-                    className="w-14 border border-gray-200 rounded px-2 py-1 text-xs text-center focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="w-14 border border-gray-200 rounded px-2 py-1 text-xs text-center max-lg:h-8 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   />
                 </td>
                 <td className="px-3 py-1.5">
                   <select
                     value={line.displayAfmeting}
                     onChange={(e) => onUpdateLine(line.id, "displayAfmeting", e.target.value)}
-                    className="border border-gray-200 rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="border border-gray-200 rounded px-2 py-1 text-xs max-lg:h-8 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   >
                     <option value="100x60">Bord 100×60</option>
                     <option value="120x60">Bord 120×60</option>
@@ -302,7 +308,7 @@ function AfdelingSection({
                   <select
                     value={line.articleId}
                     onChange={(e) => onUpdateLine(line.id, "articleId", e.target.value)}
-                    className="w-full border border-gray-200 rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="w-full border border-gray-200 rounded px-2 py-1 text-xs max-lg:h-8 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   >
                     {articleOptions.map((a) => (
                       <option key={a.id} value={a.id}>{a.articleNumber} — {a.articleName}</option>
@@ -315,11 +321,11 @@ function AfdelingSection({
                     value={line.notes}
                     onChange={(e) => onUpdateLine(line.id, "notes", e.target.value)}
                     placeholder="Notitie..."
-                    className="w-full border border-gray-200 rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="w-full border border-gray-200 rounded px-2 py-1 text-xs max-lg:h-8 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   />
                 </td>
                 <td className="px-2 py-1.5">
-                  <button onClick={() => onRemoveLine(line.id)} className="text-gray-300 hover:text-red-500">
+                  <button onClick={() => onRemoveLine(line.id)} className="text-gray-300 hover:text-red-500 mobile-animate-fast">
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </td>
@@ -327,6 +333,7 @@ function AfdelingSection({
             ))}
           </tbody>
         </table>
+        </div>
       )}
     </div>
   );

@@ -3,7 +3,7 @@ import { auth } from "@/lib/auth";
 export default async function HandleidingPage() {
   const session = await auth();
   if (!session) return null;
-  const user = session.user as any;
+  const user = session.user as typeof session.user & { role: string };
   const isHQ = user.role === "HOOFDKANTOOR";
 
   return (
@@ -56,9 +56,8 @@ function VerkoperHandleiding() {
   return (
     <div className="space-y-6">
       <Section title="Inloggen">
-        <Step n={1}>Ga naar de applicatie en vul je e-mailadres in, bijvoorbeeld <strong>amersfoort@lab21.nl</strong>.</Step>
-        <Step n={2}>Vul het wachtwoord in: <strong>Lab21</strong>.</Step>
-        <Step n={3}>Klik op <em>Inloggen</em>. Je wordt automatisch doorgestuurd naar je eigen showroom-dashboard.</Step>
+        <Step n={1}>Ga naar de applicatie en log in met je persoonlijke accountgegevens.</Step>
+        <Step n={2}>Klik op <em>Inloggen</em>. Je wordt automatisch doorgestuurd naar je eigen showroom-dashboard.</Step>
         <Note>Je hebt alleen toegang tot de gegevens van jouw eigen showroom.</Note>
       </Section>
 
@@ -124,9 +123,8 @@ function HQHandleiding() {
   return (
     <div className="space-y-6">
       <Section title="Inloggen als Hoofdkantoor">
-        <Step n={1}>Ga naar de applicatie en vul in: <strong>hq@lab21.nl</strong>.</Step>
-        <Step n={2}>Wachtwoord: <strong>Lab21</strong>.</Step>
-        <Step n={3}>Na inloggen heb je toegang tot alle showrooms en extra functies zoals HQ Overzicht, Artikelenbeheer en Beheer.</Step>
+        <Step n={1}>Log in met je persoonlijke hoofdkantoor-account.</Step>
+        <Step n={2}>Na inloggen heb je toegang tot alle showrooms en extra functies zoals HQ Overzicht, Artikelenbeheer en Beheer.</Step>
       </Section>
 
       <Section title="Showroom wisselen (Schappenplan / Inventarisatie / Showvloer)">
@@ -202,7 +200,7 @@ function HQHandleiding() {
 
       <Section title="Artikelenbeheer">
         <Step n={1}>Klik in het linkermenu op <strong>Artikelen</strong>.</Step>
-        <Step n={2}>Hier kun je artikelen toevoegen, bewerken of deactiveren. Een gedeactiveerd artikel verschijnt niet meer in importlijsten of keuzemenu's.</Step>
+        <Step n={2}>Hier kun je artikelen toevoegen, bewerken of deactiveren. Een gedeactiveerd artikel verschijnt niet meer in importlijsten of keuzemenu&apos;s.</Step>
         <Step n={3}>Elk artikel heeft: artikelnummer, naam, leverancier, categorie en status (actief/inactief).</Step>
       </Section>
 
@@ -213,44 +211,9 @@ function HQHandleiding() {
         <Note>Verwijder geen gebruiker als die nog actieve inventarisatiegegevens heeft — die gegevens zijn dan niet meer terug te vinden.</Note>
       </Section>
 
-      <Section title="Logins per showroom (overzicht)">
-        <div className="overflow-x-auto">
-          <table className="w-full text-xs border-collapse">
-            <thead>
-              <tr className="bg-gray-50">
-                <th className="text-left px-3 py-2 border border-gray-200 font-semibold">Showroom</th>
-                <th className="text-left px-3 py-2 border border-gray-200 font-semibold">E-mailadres</th>
-                <th className="text-left px-3 py-2 border border-gray-200 font-semibold">Wachtwoord</th>
-              </tr>
-            </thead>
-            <tbody>
-              {[
-                ["Hoofdkantoor", "hq@lab21.nl"],
-                ["Amersfoort", "amersfoort@lab21.nl"],
-                ["Amsterdam", "amsterdam@lab21.nl"],
-                ["Breda", "breda@lab21.nl"],
-                ["Capelle", "capelle@lab21.nl"],
-                ["Delft", "delft@lab21.nl"],
-                ["Den Bosch", "denbosch@lab21.nl"],
-                ["Eindhoven", "eindhoven@lab21.nl"],
-                ["Enschede", "enschede@lab21.nl"],
-                ["Groningen", "groningen@lab21.nl"],
-                ["Leeuwarden", "leeuwarden@lab21.nl"],
-                ["Leiden", "leiden@lab21.nl"],
-                ["Oostzaan", "oostzaan@lab21.nl"],
-                ["Tilburg", "tilburg@lab21.nl"],
-                ["Utrecht", "utrecht@lab21.nl"],
-                ["Veenendaal", "veenendaal@lab21.nl"],
-              ].map(([showroom, email]) => (
-                <tr key={email} className="even:bg-gray-50">
-                  <td className="px-3 py-1.5 border border-gray-200">{showroom}</td>
-                  <td className="px-3 py-1.5 border border-gray-200 font-mono">{email}</td>
-                  <td className="px-3 py-1.5 border border-gray-200">Lab21</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+      <Section title="Toegang en beveiliging">
+        <p>Gebruik altijd persoonlijke accounts en deel geen inloggegevens via e-mail, chat of documenten.</p>
+        <p>Neem bij toegangsvragen of accountwijzigingen contact op met de applicatiebeheerder.</p>
       </Section>
     </div>
   );

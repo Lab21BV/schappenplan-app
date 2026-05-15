@@ -108,8 +108,8 @@ export default function LoansManager({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex gap-1 bg-gray-100 p-1 rounded-xl w-fit">
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex gap-1 bg-gray-100 p-1 rounded-xl w-fit max-w-full overflow-x-auto no-scrollbar scroll-edge-fade">
           {TABS.map((t) => {
             const count = t.key === "open" ? open.length : t.key === "telaat" ? overdue.length : returned.length;
             const active = tab === t.key;
@@ -132,7 +132,7 @@ export default function LoansManager({
 
         <button
           onClick={() => { setEditing(null); setShowForm(true); }}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-700 text-white rounded-lg text-sm font-medium hover:bg-blue-800 transition"
+          className="flex items-center gap-2 px-4 py-2 bg-blue-700 text-white rounded-lg text-sm font-medium hover:bg-blue-800 transition max-lg:w-full max-lg:justify-center"
         >
           <Plus className="w-4 h-4" />
           Nieuwe uitlening
@@ -156,7 +156,8 @@ export default function LoansManager({
         </div>
       ) : (
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto no-scrollbar scroll-edge-fade">
+          <table className="w-full text-sm min-w-[980px]">
             <thead className="bg-gray-50 text-xs uppercase text-gray-500">
               <tr>
                 <th className="text-left px-4 py-3">Staal</th>
@@ -252,6 +253,7 @@ export default function LoansManager({
               })}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </div>

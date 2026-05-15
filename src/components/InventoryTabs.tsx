@@ -119,7 +119,8 @@ function InventarisatieTab({
                     <h2 className="font-semibold text-blue-900 text-sm">{group.name}</h2>
                     <span className="text-xs text-blue-400 ml-auto">{group.items.length} regel{group.items.length !== 1 ? "s" : ""}</span>
                   </div>
-                  <table className="w-full text-sm">
+                  <div className="overflow-x-auto no-scrollbar scroll-edge-fade">
+                  <table className="w-full text-sm min-w-[1180px]">
                     <thead className="bg-gray-50 border-b border-gray-100">
                       <tr>
                         {hasLocatie && <th className="text-left px-4 py-2.5 font-medium text-gray-600 text-xs">Locatie</th>}
@@ -235,6 +236,7 @@ function InventarisatieTab({
                       })}
                     </tbody>
                   </table>
+                  </div>
                 </div>
               ))}
             </div>
@@ -285,7 +287,8 @@ function VerschilSection({
                 </div>
                 <div className="pl-3 border-l-2 border-gray-200">
                   <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                    <table className="w-full text-sm">
+                    <div className="overflow-x-auto no-scrollbar scroll-edge-fade">
+                    <table className="w-full text-sm min-w-[900px]">
                       <thead className="bg-gray-50 border-b border-gray-100">
                         <tr>
                           <th className="text-left px-4 py-2.5 font-medium text-gray-600 text-xs">Categorie</th>
@@ -309,6 +312,7 @@ function VerschilSection({
                         ))}
                       </tbody>
                     </table>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -361,7 +365,8 @@ function VerschilTab({
           </div>
         ) : (
           <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-            <table className="w-full text-sm">
+            <div className="overflow-x-auto no-scrollbar scroll-edge-fade">
+            <table className="w-full text-sm min-w-[860px]">
               <thead className="bg-gray-50 border-b border-gray-100">
                 <tr>
                   <th className="text-left px-4 py-2.5 font-medium text-gray-600 text-xs">Nr.</th>
@@ -387,6 +392,7 @@ function VerschilTab({
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
         )}
       </div>

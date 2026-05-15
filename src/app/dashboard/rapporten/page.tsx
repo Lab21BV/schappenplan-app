@@ -51,20 +51,20 @@ export default async function RapportenPage({
   const tab: Tab = (TABS.some((t) => t.key === rawTab) ? rawTab : "ontbreekt") as Tab;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-lg:space-y-5 max-lg:pb-2">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Rapporten</h1>
+        <h1 className="text-2xl max-lg:text-xl font-bold text-gray-900">Rapporten</h1>
         <p className="text-gray-500 text-sm mt-1">
           HQ-overzichten: ontbrekende stalen, herverdeling, uit-collectie, omzet en bestellijst.
         </p>
       </div>
 
-      <div className="flex gap-1 bg-gray-100 p-1 rounded-xl w-fit flex-wrap">
+      <div className="flex gap-1 bg-gray-100 p-1 rounded-xl w-fit flex-wrap max-lg:w-full max-lg:flex-nowrap max-lg:overflow-x-auto max-lg:no-scrollbar max-lg:pb-1 mobile-fade-in">
         {TABS.map((t) => (
           <Link
             key={t.key}
             href={`/dashboard/rapporten?tab=${t.key}`}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            className={`px-4 py-2 max-lg:py-3 rounded-lg text-sm font-medium transition-colors mobile-animate-fast max-lg:whitespace-nowrap ${
               tab === t.key ? "bg-white text-blue-900 shadow-sm" : "text-gray-600 hover:text-gray-900"
             }`}
           >

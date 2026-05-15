@@ -70,7 +70,7 @@ export default function KoppelingenTable({ sections }: { sections: KoppelingSect
               <h2 className={`text-sm font-semibold ${accent.headerText}`}>{section.title}</h2>
               <p className={`text-xs mt-0.5 ${accent.headerSub}`}>{section.description}</p>
             </div>
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto scroll-edge-fade">
               <table className="w-full text-xs border-collapse">
                 <thead>
                   <tr className="bg-gray-50 text-gray-700">

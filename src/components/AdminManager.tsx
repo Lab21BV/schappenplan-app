@@ -112,7 +112,8 @@ export default function AdminManager({
             </div>
             <div className="pl-3 border-l-2 border-gray-200">
               <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                <table className="w-full text-sm">
+                <div className="overflow-x-auto no-scrollbar scroll-edge-fade">
+                <table className="w-full text-sm min-w-[840px]">
                   <thead className="bg-gray-50 border-b border-gray-100">
                     <tr>
                       <th className="text-left px-4 py-2.5 font-medium text-gray-500 text-xs">Categorie</th>
@@ -159,6 +160,7 @@ export default function AdminManager({
                     })}
                   </tbody>
                 </table>
+                </div>
               </div>
             </div>
           </div>

@@ -64,7 +64,8 @@ export default function ShowFloorInventory({ rootGroups }: { rootGroups: RootGro
 
           <div className="pl-3 border-l-2 border-gray-200">
             <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-              <table className="w-full text-sm">
+              <div className="overflow-x-auto no-scrollbar scroll-edge-fade">
+              <table className="w-full text-sm min-w-[900px]">
                 <thead className="bg-gray-50 border-b border-gray-100">
                   <tr>
                     <th className="text-left px-4 py-2.5 font-medium text-gray-600 text-xs">Nr.</th>
@@ -109,6 +110,7 @@ export default function ShowFloorInventory({ rootGroups }: { rootGroups: RootGro
                   ))}
                 </tbody>
               </table>
+              </div>
             </div>
           </div>
         </div>

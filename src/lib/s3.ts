@@ -64,7 +64,7 @@ export async function deleteMultipleFromS3(keys: string[]): Promise<void> {
   await Promise.all(keys.map((s) => deleteFromS3ByKey(extractKeyFromUrl(s)).catch(() => {})));
 }
 
-export function extractKeyFromUrl(url: string): string | null {
+export function extractKeyFromUrl(url: string): string {
   const endpoint = process.env.S3_ENDPOINT!.replace(/\/$/, "");
   const bucket = process.env.S3_BUCKET_NAME!;
   const prefix = `${endpoint}/${bucket}/`;

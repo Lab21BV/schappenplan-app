@@ -53,15 +53,15 @@ export default async function OverzichtPage({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-lg:space-y-5 max-lg:pb-2">
       {/* Page header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">HQ Overzicht</h1>
+        <h1 className="text-2xl max-lg:text-xl font-bold text-gray-900">HQ Overzicht</h1>
         <p className="text-gray-500 text-sm mt-1">{showrooms.length} showrooms · Schappenplan & Inventaris</p>
       </div>
 
       {/* View tabs */}
-      <div className="flex gap-1 bg-gray-100 p-1 rounded-xl w-fit">
+      <div className="flex gap-1 bg-gray-100 p-1 rounded-xl w-fit max-lg:w-full max-lg:overflow-x-auto max-lg:no-scrollbar max-lg:pb-1 mobile-fade-in">
         {VIEWS.map((v) => {
           const href = activeHref(v.key);
           const active = view === v.key;
@@ -69,7 +69,7 @@ export default async function OverzichtPage({
             <Link
               key={v.key}
               href={href}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              className={`px-4 py-2 max-lg:py-3 rounded-lg text-sm font-medium transition-colors mobile-animate-fast max-lg:whitespace-nowrap ${
                 active ? "bg-white text-blue-900 shadow-sm" : "text-gray-600 hover:text-gray-900"
               }`}
             >
@@ -81,11 +81,11 @@ export default async function OverzichtPage({
 
       {/* Showroom selector for schappenplan / inventarisatie / per-showroom verschil */}
       {(needsShowroomSelector || view === "verschil") && (
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap max-lg:overflow-x-auto max-lg:no-scrollbar max-lg:pb-1 mobile-fade-in">
           {view === "verschil" && (
             <Link
               href="/dashboard/overzicht?view=verschil"
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
+              className={`px-3 py-1.5 max-lg:py-3 rounded-lg text-sm font-medium transition mobile-animate-fast max-lg:whitespace-nowrap ${
                 !showroomParam
                   ? "bg-blue-700 text-white"
                   : "bg-gray-100 text-gray-700 hover:bg-gray-200"
@@ -98,7 +98,7 @@ export default async function OverzichtPage({
             <Link
               key={sr.id}
               href={activeHref(view, sr.id)}
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
+              className={`px-3 py-1.5 max-lg:py-3 rounded-lg text-sm font-medium transition mobile-animate-fast max-lg:whitespace-nowrap ${
                 sr.id === showroomId && (needsShowroomSelector || showroomParam)
                   ? "bg-blue-700 text-white"
                   : "bg-gray-100 text-gray-700 hover:bg-gray-200"

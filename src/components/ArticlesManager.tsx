@@ -183,8 +183,8 @@ export default function ArticlesManager({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-3">
-        <div className="flex-1 relative">
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex-1 relative min-w-[220px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
             type="text"
@@ -196,13 +196,13 @@ export default function ArticlesManager({
         </div>
         <button
           onClick={() => { setShowImport(!showImport); setShowForm(false); }}
-          className="flex items-center gap-2 bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-200"
+          className="flex items-center gap-2 bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-200 max-lg:flex-1 max-lg:justify-center"
         >
           <Upload className="w-4 h-4" /> Importeren
         </button>
         <button
           onClick={openNew}
-          className="flex items-center gap-2 bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-800"
+          className="flex items-center gap-2 bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-800 max-lg:flex-1 max-lg:justify-center"
         >
           <Plus className="w-4 h-4" /> Nieuw artikel
         </button>
@@ -340,7 +340,8 @@ export default function ArticlesManager({
                     <span className="text-xs text-gray-400 ml-2">{items.length}</span>
                   </div>
                   <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                    <table className="w-full text-sm">
+                    <div className="overflow-x-auto no-scrollbar scroll-edge-fade">
+                    <table className="w-full text-sm min-w-[1120px]">
                       <thead className="bg-gray-50 border-b border-gray-100">
                         <tr>
                           <th className="text-left px-4 py-2 font-medium text-gray-500 text-xs">Nr.</th>
@@ -393,6 +394,7 @@ export default function ArticlesManager({
                         ))}
                       </tbody>
                     </table>
+                    </div>
                   </div>
                 </div>
               ))}

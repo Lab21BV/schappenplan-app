@@ -52,7 +52,8 @@ export function ShowroomsOverview({ stats, totalShowrooms }: { stats: ShowroomSt
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-      <table className="w-full text-sm">
+      <div className="overflow-x-auto no-scrollbar scroll-edge-fade">
+      <table className="w-full text-sm min-w-[760px]">
         <thead className="bg-gray-50 border-b border-gray-100">
           <tr>
             <th className="text-left px-4 py-3 font-medium text-gray-600">Showroom</th>
@@ -100,6 +101,7 @@ export function ShowroomsOverview({ stats, totalShowrooms }: { stats: ShowroomSt
           </tr>
         </tfoot>
       </table>
+      </div>
     </div>
   );
 }
@@ -153,7 +155,8 @@ export function LeveranciersOverview({ rows, totalShowrooms }: { rows: SupplierR
             </button>
 
             {open && (
-              <table className="w-full text-sm">
+              <div className="overflow-x-auto no-scrollbar scroll-edge-fade">
+              <table className="w-full text-sm min-w-[760px]">
                 <thead className="border-b border-gray-100 bg-white">
                   <tr>
                     <th className="text-left px-6 py-2 font-medium text-gray-500 text-xs">Artikel</th>
@@ -180,6 +183,7 @@ export function LeveranciersOverview({ rows, totalShowrooms }: { rows: SupplierR
                   ))}
                 </tbody>
               </table>
+              </div>
             )}
           </div>
         );
@@ -260,7 +264,8 @@ function VerschilSection({ title, items, type }: { title: string; items: Verschi
       {Object.entries(bySupplier).sort(([a], [b]) => a.localeCompare(b)).map(([supplier, supplierItems]) => (
         <div key={supplier}>
           <div className="px-4 py-1.5 bg-gray-50 text-xs font-medium text-gray-500 border-b border-gray-100">{supplier}</div>
-          <table className="w-full text-xs">
+          <div className="overflow-x-auto no-scrollbar scroll-edge-fade">
+          <table className="w-full text-xs min-w-[900px]">
             <tbody>
               {supplierItems.map((item, i) => (
                 <tr key={i} className="hover:bg-gray-50 border-b border-gray-50 last:border-0">
@@ -272,6 +277,7 @@ function VerschilSection({ title, items, type }: { title: string; items: Verschi
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       ))}
     </div>
@@ -379,7 +385,8 @@ export function TotaalVerschilOverview({ verschilByShowroom, totalShowrooms }: {
             </button>
 
             {open && (
-              <table className="w-full text-sm">
+              <div className="overflow-x-auto no-scrollbar scroll-edge-fade">
+              <table className="w-full text-sm min-w-[980px]">
                 <thead className="border-b border-gray-100 bg-white">
                   <tr>
                     <th className="text-left px-6 py-2 font-medium text-gray-500 text-xs">Artikel</th>
@@ -410,6 +417,7 @@ export function TotaalVerschilOverview({ verschilByShowroom, totalShowrooms }: {
                   ))}
                 </tbody>
               </table>
+              </div>
             )}
           </div>
         );
@@ -490,7 +498,8 @@ export function UitleningenOverview({
       <div>
         <h2 className="text-base font-semibold text-gray-900 mb-3">Per showroom</h2>
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto no-scrollbar scroll-edge-fade">
+          <table className="w-full text-sm min-w-[620px]">
             <thead className="bg-gray-50 text-xs uppercase text-gray-500">
               <tr>
                 <th className="text-left px-4 py-3">Showroom</th>
@@ -519,6 +528,7 @@ export function UitleningenOverview({
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       </div>
 
@@ -533,7 +543,8 @@ export function UitleningenOverview({
           </div>
         ) : (
           <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-            <table className="w-full text-sm">
+            <div className="overflow-x-auto no-scrollbar scroll-edge-fade">
+            <table className="w-full text-sm min-w-[920px]">
               <thead className="bg-gray-50 text-xs uppercase text-gray-500">
                 <tr>
                   <th className="text-left px-4 py-3">Showroom</th>
@@ -569,6 +580,7 @@ export function UitleningenOverview({
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
         )}
       </div>

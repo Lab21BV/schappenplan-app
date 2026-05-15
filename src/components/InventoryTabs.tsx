@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ClipboardList, Plus, AlertCircle } from "lucide-react";
+import { ClipboardList, Plus, AlertCircle, Trash2, Edit2 } from "lucide-react";
 import { statusBadgeClass } from "@/lib/displayOptions";
 
+import React from "react";
 // ── shared helpers ────────────────────────────────────────────────────────────
 
 function locatieLabel(locatieType: string | null, locatieNummer: number | null, bordNummer?: number | null) {
@@ -45,6 +46,7 @@ export interface InventoryItem {
   bordNummer: number | null;
   stock: number;
   notes: string | null;
+  images?: string[];
   createdAt: string;
   isDisplayMaterial?: boolean;
   displayAfmeting?: string | null;
@@ -79,10 +81,14 @@ export interface ShowFloorVerschilItem {
 // ── Inventarisatie tab ────────────────────────────────────────────────────────
 
 function InventarisatieTab({
-  sortedRoots, hasLocatie,
+  sortedRoots, hasLocatie, onDelete, onEdit, editingId, editRow,
 }: {
   sortedRoots: [string, RootGroup][];
   hasLocatie: boolean;
+  onDelete?: (id: string) => void;
+  onEdit?: (inv: InventoryItem) => void;
+  editingId?: string | null;
+  editRow?: (inv: InventoryItem) => React.ReactNode;
 }) {
   if (sortedRoots.length === 0) return (
     <div className="bg-white rounded-xl border border-gray-200 py-16 text-center">
@@ -123,65 +129,110 @@ function InventarisatieTab({
                         <th className="text-right px-4 py-2.5 font-medium text-gray-600 text-xs">Verkoopprijs</th>
                         <th className="text-right px-4 py-2.5 font-medium text-gray-600 text-xs">Voorraad</th>
                         <th className="text-left px-4 py-2.5 font-medium text-gray-600 text-xs">Notitie</th>
+                        <th className="text-center px-4 py-2.5 font-medium text-gray-600 text-xs w-16">Foto{"'"}s</th>
                         <th className="text-left px-4 py-2.5 font-medium text-gray-600 text-xs">Door</th>
                         <th className="text-left px-4 py-2.5 font-medium text-gray-600 text-xs">Datum</th>
+                        {onDelete && <th className="w-8" />}
+                        {onDelete && onEdit && <th className="w-10" />}
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50">
-                      {group.items.map((inv) => (
-                        <tr key={inv.id} className="hover:bg-gray-50">
-                          {hasLocatie && (
-                            <td className="px-4 py-2.5">
-                              <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${locatieColor(inv.locatieType)}`}>
-                                {locatieLabel(inv.locatieType, inv.locatieNummer, inv.bordNummer)}
-                              </span>
-                            </td>
-                          )}
-                          <td className="px-4 py-2.5 font-mono text-xs text-gray-600">{inv.article.articleNumber}</td>
-                          <td className="px-4 py-2.5 font-medium text-gray-900">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span>{inv.article.articleName}</span>
-                              {inv.isDisplayMaterial && (
-                                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 border border-purple-200">
-                                  Displaymateriaal
-                                </span>
+                      {group.items.map((inv) => {
+                        const isEditing = editingId === inv.id;
+                        return (
+                          <React.Fragment key={inv.id}>
+                            <tr key={inv.id} className={isEditing ? "bg-gray-100" : "hover:bg-gray-50"}>
+                              {hasLocatie && (
+                                <td className="px-4 py-2.5">
+                                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${isEditing ? "opacity-50" : ""} ${locatieColor(inv.locatieType)}`}>
+                                    {locatieLabel(inv.locatieType, inv.locatieNummer, inv.bordNummer)}
+                                  </span>
+                                </td>
                               )}
-                            </div>
-                          </td>
-                          <td className="px-4 py-2.5">
-                            {inv.openLoan ? (
-                              <Link
-                                href={`/dashboard/loans/${inv.openLoan.id}`}
-                                className="inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-200 hover:bg-amber-200"
-                                title={`Uitgeleend aan ${inv.openLoan.customerName}`}
-                              >
-                                Uitgeleend →
-                              </Link>
-                            ) : (
-                              <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${statusBadgeClass(inv.article.status ?? "Collectie")}`}>
-                                {inv.article.status ?? "Collectie"}
-                              </span>
-                            )}
-                          </td>
-                          <td className="px-4 py-2.5 text-right text-xs text-gray-700">
-                            {typeof inv.article.sellingPrice === "number" ? `€ ${inv.article.sellingPrice.toFixed(2)}` : "—"}
-                          </td>
-                          <td className="px-4 py-2.5 text-right">
-                            <span className={`font-semibold px-2 py-0.5 rounded-full text-xs ${
-                              inv.stock > 10 ? "bg-green-100 text-green-700" :
-                              inv.stock > 0  ? "bg-orange-100 text-orange-700" :
-                                               "bg-red-100 text-red-700"
-                            }`}>
-                              {inv.stock} st.
-                            </span>
-                          </td>
-                          <td className="px-4 py-2.5 text-gray-500 text-xs">{inv.notes ?? "—"}</td>
-                          <td className="px-4 py-2.5 text-gray-500 text-xs">{inv.createdBy.name}</td>
-                          <td className="px-4 py-2.5 text-gray-400 text-xs">
-                            {new Date(inv.createdAt).toLocaleDateString("nl-NL", { day: "2-digit", month: "2-digit", year: "numeric" })}
-                          </td>
-                        </tr>
-                      ))}
+                              <td className="px-4 py-2.5 font-mono text-xs text-gray-600">{inv.article.articleNumber}</td>
+                              <td className="px-4 py-2.5 font-medium text-gray-900">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span>{inv.article.articleName}</span>
+                                  {inv.isDisplayMaterial && (
+                                    <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 border border-purple-200">
+                                      Displaymateriaal
+                                    </span>
+                                  )}
+                                </div>
+                              </td>
+                              <td className="px-4 py-2.5">
+                                {inv.openLoan ? (
+                                  <Link
+                                    href={`/dashboard/loans/${inv.openLoan.id}`}
+                                    className="inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-200 hover:bg-amber-200"
+                                    title={`Uitgeleend aan ${inv.openLoan.customerName}`}
+                                  >
+                                    Uitgeleend →
+                                  </Link>
+                                ) : (
+                                  <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${statusBadgeClass(inv.article.status ?? "Collectie")}`}>
+                                    {inv.article.status ?? "Collectie"}
+                                  </span>
+                                )}
+                              </td>
+                              <td className="px-4 py-2.5 text-right text-xs text-gray-700">
+                                {typeof inv.article.sellingPrice === "number" ? `€ ${inv.article.sellingPrice.toFixed(2)}` : "—"}
+                              </td>
+                              {isEditing && editRow ? ( null ) : (
+                                <td className="px-4 py-2.5 text-right">
+                                  <span className={`font-semibold px-2 py-0.5 rounded-full text-xs ${
+                                    inv.stock > 10 ? "bg-green-100 text-green-700" :
+                                    inv.stock > 0  ? "bg-orange-100 text-orange-700" :
+                                                     "bg-red-100 text-red-700"
+                                  }`}>
+                                    {inv.stock} st.
+                                  </span>
+                                </td>
+                              )}
+                              {isEditing && editRow ? ( null ) : (
+                                <td className="px-4 py-2.5 text-gray-500 text-xs">{inv.notes ?? "—"}</td>
+                              )}
+                              {isEditing && editRow ? ( null ) : (
+                                <td className="px-4 py-2.5 text-center">
+                                  {inv.images && inv.images.length > 0 ? (
+                                    <div className="flex gap-1 justify-center">
+                                      {inv.images.slice(0, 3).map((key, idx) => (
+                                        <a key={idx} href={`/api/inventory/images?path=${encodeURIComponent(key)}`} target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded overflow-hidden border border-gray-200 hover:border-blue-400 transition inline-block flex-shrink-0">
+                                          <img src={`/api/inventory/images?path=${encodeURIComponent(key)}`} alt="" className="w-full h-full object-cover" />
+                                        </a>
+                                      ))}
+                                      {inv.images.length > 3 && (
+                                        <span className="w-8 h-8 rounded bg-gray-100 border border-gray-200 flex items-center justify-center text-xs text-gray-500">
+                                          +{inv.images.length - 3}
+                                        </span>
+                                      )}
+                                    </div>
+                                  ) : (
+                                    <span className="text-gray-300">—</span>
+                                  )}
+                                </td>
+                              )}
+                              <td className="px-4 py-2.5 text-gray-500 text-xs">{inv.createdBy.name}</td>
+                              <td className="px-4 py-2.5 text-gray-400 text-xs">
+                                {new Date(inv.createdAt).toLocaleDateString("nl-NL", { day: "2-digit", month: "2-digit", year: "numeric" })}
+                              </td>
+                              {onDelete && onEdit && (
+                                <td className="px-2 py-1.5">
+                                  <div className="flex gap-0.5">
+                                    <button onClick={() => onEdit(inv)} className="text-gray-400 hover:text-blue-600 transition" title="Bewerken">
+                                      <Edit2 className="w-3.5 h-3.5" />
+                                    </button>
+                                    <button onClick={() => onDelete(inv.id)} className="text-gray-400 hover:text-red-500 transition" title="Verwijderen">
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                    </button>
+                                  </div>
+                                </td>
+                              )}
+                            </tr>
+                            {isEditing && editRow && editRow(inv)}
+                          </React.Fragment>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
@@ -346,13 +397,17 @@ function VerschilTab({
 // ── Main export ───────────────────────────────────────────────────────────────
 
 export default function InventoryTabs({
-  sortedRoots, hasLocatie, verschilMissing, verschilExtra, showFloorItems,
+  sortedRoots, hasLocatie, verschilMissing, verschilExtra, showFloorItems, onDelete, onEdit, editingId, editRow,
 }: {
   sortedRoots: [string, RootGroup][];
   hasLocatie: boolean;
   verschilMissing: VerschilRoot[];
   verschilExtra: VerschilRoot[];
   showFloorItems: ShowFloorVerschilItem[];
+  onDelete?: (id: string) => void;
+  onEdit?: (inv: InventoryItem) => void;
+  editingId?: string | null;
+  editRow?: (inv: InventoryItem) => React.ReactNode;
 }) {
   const [tab, setTab] = useState<"inventarisatie" | "verschil">("inventarisatie");
 
@@ -382,7 +437,7 @@ export default function InventoryTabs({
       </div>
 
       {tab === "inventarisatie"
-        ? <InventarisatieTab sortedRoots={sortedRoots} hasLocatie={hasLocatie} />
+        ? <InventarisatieTab sortedRoots={sortedRoots} hasLocatie={hasLocatie} onDelete={onDelete} onEdit={onEdit} editingId={editingId} editRow={editRow} />
         : <VerschilTab missing={verschilMissing} extra={verschilExtra} showFloorItems={showFloorItems} />}
     </div>
   );

@@ -23,6 +23,7 @@ export async function POST(req: Request) {
       displayAfmeting: item.displayAfmeting || null,
       stock: item.stock,
       isDisplayMaterial: !!item.isDisplayMaterial,
+      images: item.images ?? [],
       notes: item.notes || null,
       createdById: userId,
     })),

@@ -145,6 +145,7 @@ model Inventory {
   displayAfmeting  String?   // strook | 100x60 | 120x60 | sample | kapstaal | showbaan | waaier | staal-19x21 | traprenovatiedisplay
   stock            Int       @default(0)
   isDisplayMaterial Boolean  @default(false) // display material dat NIET op het schappenplan hoort
+  images         String[]
   notes          String?
   createdById    String
   createdAt      DateTime  @default(now())

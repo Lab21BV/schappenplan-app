@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Trash2, Save, ChevronDown, ChevronRight } from "lucide-react";
+import { Plus, Trash2, Save, ChevronDown, ChevronRight, Camera, X } from "lucide-react";
 import { getAfmetingOptions, defaultAfmeting, LOCATIE_OPTIONS, decodeLocatie, encodeLocatie, statusBadgeClass } from "@/lib/displayOptions";
 
 interface Article {
@@ -42,6 +42,8 @@ interface InventoryLine {
   stock: string;
   notes: string;
   isDisplayMaterial: boolean;
+  images: string[];
+  pendingFiles: { file: File; preview: string }[];
 }
 
 let lineCounter = 1;
@@ -75,13 +77,14 @@ export default function NewInventoryForm({
   const initWandAfm = firstCat ? defaultAfmeting(firstCat, categories, "WAND") : "strook";
   const initBokAfm = firstCat ? defaultAfmeting(firstCat, categories, "BOK") : "120x60";
   const [lines, setLines] = useState<InventoryLine[]>([
-    { id: lineCounter++, categoryId: firstCatId, locatieType: "WAND", locatieNummer: "1", bordNummer: "", displayAfmeting: initWandAfm, articleId: firstArticle, stock: "0", notes: "", isDisplayMaterial: false },
-    { id: lineCounter++, categoryId: firstCatId, locatieType: "BOK",  locatieNummer: "1", bordNummer: "1", displayAfmeting: initBokAfm, articleId: firstArticle, stock: "0", notes: "", isDisplayMaterial: false },
-    { id: lineCounter++, categoryId: firstCatId, locatieType: "BOK",  locatieNummer: "1", bordNummer: "2", displayAfmeting: initBokAfm, articleId: firstArticle, stock: "0", notes: "", isDisplayMaterial: false },
-    { id: lineCounter++, categoryId: firstCatId, locatieType: "BOK",  locatieNummer: "1", bordNummer: "3", displayAfmeting: initBokAfm, articleId: firstArticle, stock: "0", notes: "", isDisplayMaterial: false },
+    { id: lineCounter++, categoryId: firstCatId, locatieType: "WAND", locatieNummer: "1", bordNummer: "", displayAfmeting: initWandAfm, articleId: firstArticle, stock: "0", notes: "", isDisplayMaterial: false, images: [], pendingFiles: [] },
+    { id: lineCounter++, categoryId: firstCatId, locatieType: "BOK",  locatieNummer: "1", bordNummer: "1", displayAfmeting: initBokAfm, articleId: firstArticle, stock: "0", notes: "", isDisplayMaterial: false, images: [], pendingFiles: [] },
+    { id: lineCounter++, categoryId: firstCatId, locatieType: "BOK",  locatieNummer: "1", bordNummer: "2", displayAfmeting: initBokAfm, articleId: firstArticle, stock: "0", notes: "", isDisplayMaterial: false, images: [], pendingFiles: [] },
+    { id: lineCounter++, categoryId: firstCatId, locatieType: "BOK",  locatieNummer: "1", bordNummer: "3", displayAfmeting: initBokAfm, articleId: firstArticle, stock: "0", notes: "", isDisplayMaterial: false, images: [], pendingFiles: [] },
   ]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [cameraLineId, setCameraLineId] = useState<number | null>(null);
 
   function addLine(categoryId?: string) {
     const catId = categoryId ?? firstCatId;
@@ -97,11 +100,18 @@ export default function NewInventoryForm({
       stock: "0",
       notes: "",
       isDisplayMaterial: false,
+      images: [],
+      pendingFiles: [],
     }]);
   }
 
   function removeLine(id: number) {
-    setLines(lines.filter((l) => l.id !== id));
+    setLines(lines.filter((l) => {
+      if (l.id === id) {
+        l.pendingFiles.forEach((f) => URL.revokeObjectURL(f.preview));
+      }
+      return l.id !== id;
+    }));
   }
 
   function updateLine(id: number, field: keyof InventoryLine | "locatie", value: string | boolean) {
@@ -134,6 +144,30 @@ export default function NewInventoryForm({
     }));
   }
 
+  function addPendingFiles(lineId: number, files: FileList | File[]) {
+    const fileArray = Array.isArray(files) ? files : Array.from(files);
+    const newPending = fileArray.map((file) => ({
+      file,
+      preview: URL.createObjectURL(file),
+    }));
+    setLines(lines.map((l) =>
+      l.id === lineId ? { ...l, pendingFiles: [...l.pendingFiles, ...newPending] } : l
+    ));
+  }
+
+  function removePendingFile(lineId: number, preview: string) {
+    URL.revokeObjectURL(preview);
+    setLines(lines.map((l) =>
+      l.id === lineId ? { ...l, pendingFiles: l.pendingFiles.filter((f) => f.preview !== preview) } : l
+    ));
+  }
+
+  function removeUploadedUrl(lineId: number, url: string) {
+    setLines(lines.map((l) =>
+      l.id === lineId ? { ...l, images: l.images.filter((u) => u !== url) } : l
+    ));
+  }
+
   const articlesByCat = articles.reduce((acc, a) => {
     if (!acc[a.category.id]) acc[a.category.id] = [];
     acc[a.category.id].push(a);
@@ -144,13 +178,32 @@ export default function NewInventoryForm({
     setSaving(true);
     setError("");
     try {
+      const linesWithImages = await Promise.all(
+        lines.map(async (l) => {
+          let imageUrls = [...l.images];
+          if (l.pendingFiles.length > 0) {
+            const formData = new FormData();
+            l.pendingFiles.forEach((pf) => formData.append("files", pf.file));
+            const uploadRes = await fetch("/api/inventory/upload", {
+              method: "POST",
+              body: formData,
+            });
+            if (!uploadRes.ok) throw new Error("Upload mislukt");
+            const { keys } = await uploadRes.json();
+            imageUrls = [...imageUrls, ...keys];
+            l.pendingFiles.forEach((pf) => URL.revokeObjectURL(pf.preview));
+          }
+          return { ...l, images: imageUrls };
+        })
+      );
+
       const res = await fetch("/api/inventory", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           showroomId,
           userId,
-          items: lines.map((l) => ({
+          items: linesWithImages.map((l) => ({
             articleId: l.articleId,
             categoryId: l.categoryId || null,
             locatieType: l.locatieType,
@@ -160,6 +213,7 @@ export default function NewInventoryForm({
             stock: parseInt(l.stock) || 0,
             notes: l.notes,
             isDisplayMaterial: l.isDisplayMaterial,
+            images: l.images,
           })),
         }),
       });
@@ -173,7 +227,6 @@ export default function NewInventoryForm({
 
   return (
     <div className="space-y-5">
-      {/* Showroom selector */}
       {showrooms.length > 1 && (
         <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-4">
           <label className="text-sm font-medium text-gray-700">Showroom</label>
@@ -187,7 +240,6 @@ export default function NewInventoryForm({
         </div>
       )}
 
-      {/* Per-category grouped sections */}
       <div className="space-y-4">
         {leafCats.map((cat, catIdx) => {
           const catLines = lines.filter((l) => l.categoryId === cat.id);
@@ -206,12 +258,15 @@ export default function NewInventoryForm({
               onAddLine={() => addLine(cat.id)}
               onRemoveLine={removeLine}
               onUpdateLine={updateLine}
+              onAddPendingFiles={addPendingFiles}
+              onRemovePendingFile={removePendingFile}
+              onRemoveUploadedUrl={removeUploadedUrl}
+              onCameraCaptureStart={(id) => setCameraLineId(id)}
             />
           );
         })}
       </div>
 
-      {/* Add line to a new afdeling */}
       <div className="flex justify-between items-center">
         <div className="flex gap-2 flex-wrap">
           {leafCats.map((cat, i) => (
@@ -230,6 +285,15 @@ export default function NewInventoryForm({
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">{error}</div>
       )}
 
+      <CameraModal
+        lineId={cameraLineId}
+        onCapture={(id, files) => {
+          setCameraLineId(null);
+          addPendingFiles(id, files);
+        }}
+        onClose={() => setCameraLineId(null)}
+      />
+
       <div className="flex justify-end gap-3">
         <button onClick={() => router.push("/dashboard/inventory")} className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50">
           Annuleren
@@ -245,6 +309,7 @@ export default function NewInventoryForm({
 
 function AfdelingSection({
   cat, allCats, catNr, lines, config, articles, allArticles, onAddLine, onRemoveLine, onUpdateLine,
+  onAddPendingFiles, onRemovePendingFile, onRemoveUploadedUrl, onCameraCaptureStart,
 }: {
   cat: Category;
   allCats: Category[];
@@ -256,6 +321,10 @@ function AfdelingSection({
   onAddLine: () => void;
   onRemoveLine: (id: number) => void;
   onUpdateLine: (id: number, field: keyof InventoryLine | "locatie", value: string | boolean) => void;
+  onAddPendingFiles: (lineId: number, files: FileList | File[]) => void;
+  onRemovePendingFile: (lineId: number, preview: string) => void;
+  onRemoveUploadedUrl: (lineId: number, url: string) => void;
+  onCameraCaptureStart: (lineId: number) => void;
 }) {
   const [open, setOpen] = useState(true);
   const articleOptions = articles.length > 0 ? articles : allArticles;
@@ -304,6 +373,7 @@ function AfdelingSection({
               <th className="text-left px-3 py-2 font-medium text-gray-600 text-xs w-20">Voorraad</th>
               <th className="text-left px-3 py-2 font-medium text-gray-600 text-xs w-20" title="Displaymateriaal — niet op schappenplan">Displaymat.</th>
               <th className="text-left px-3 py-2 font-medium text-gray-600 text-xs">Notitie</th>
+              <th className="text-left px-3 py-2 font-medium text-gray-600 text-xs w-[140px]">Foto{"'"}s</th>
               <th className="w-8" />
             </tr>
           </thead>
@@ -407,6 +477,43 @@ function AfdelingSection({
                     className="w-full border border-gray-200 rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
                   />
                 </td>
+                <td className="px-3 py-1.5">
+                  <div className="space-y-1.5">
+                    <div className="flex flex-wrap gap-1">
+                      {line.images.map((key) => (
+                        <div key={key} className="relative group w-10 h-10 rounded overflow-hidden border border-gray-200">
+                          <img src={`/api/inventory/images?path=${encodeURIComponent(key)}`} alt="" className="w-full h-full object-cover" />
+                          <button
+                            onClick={() => onRemoveUploadedUrl(line.id, key)}
+                            className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center"
+                          >
+                            <X className="w-3 h-3 text-white" />
+                          </button>
+                        </div>
+                      ))}
+                      {line.pendingFiles.map((pf) => (
+                        <div key={pf.preview} className="relative group w-10 h-10 rounded overflow-hidden border border-gray-200">
+                          <img src={pf.preview} alt="" className="w-full h-full object-cover" />
+                          <div className="absolute inset-0 bg-blue-200/40" />
+                          <button
+                            onClick={() => onRemovePendingFile(line.id, pf.preview)}
+                            className="absolute inset-0 flex items-center justify-center"
+                          >
+                            <X className="w-3 h-3 text-gray-700" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => onCameraCaptureStart(line.id)}
+                      className="inline-flex items-center gap-1 text-xs text-white bg-blue-700 hover:bg-blue-800 px-2.5 py-1 rounded-lg font-medium"
+                    >
+                      <Camera className="w-3 h-3" />
+                      <span>Foto</span>
+                    </button>
+                  </div>
+                </td>
                 <td className="px-2 py-1.5">
                   <button onClick={() => onRemoveLine(line.id)} className="text-gray-300 hover:text-red-500">
                     <Trash2 className="w-3.5 h-3.5" />
@@ -417,6 +524,158 @@ function AfdelingSection({
           </tbody>
         </table>
       )}
+    </div>
+  );
+}
+
+function CameraModal({ lineId, onCapture, onClose }: { lineId: number | null; onCapture: (id: number, files: File[]) => void; onClose: () => void }) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [mode, setMode] = useState<"camera" | "gallery">("camera");
+  const [staged, setStaged] = useState<{ file: File; preview: string }[]>([]);
+
+  useEffect(() => {
+    if (!lineId) { setMode("camera"); setError(null); setStaged([]); return; }
+    const video = videoRef.current;
+    if (!video || mode !== "camera") return;
+
+    let mounted = true;
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+      .then(stream => {
+        if (mounted && videoRef.current) {
+          streamRef.current = stream;
+          videoRef.current.srcObject = stream;
+        }
+      })
+      .catch(() => setError("Camera niet beschikbaar"));
+
+    return () => {
+      mounted = false;
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(t => t.stop());
+        streamRef.current = null;
+      }
+    };
+  }, [lineId, mode]);
+
+  function handleSwitchMode(newMode: "camera" | "gallery") {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(t => t.stop());
+      streamRef.current = null;
+      if (videoRef.current) videoRef.current.srcObject = null;
+    }
+    setError(null);
+    setMode(newMode);
+  }
+
+  function capture() {
+    if (!videoRef.current || !canvasRef.current) return;
+    const canvas = canvasRef.current;
+    canvas.width = videoRef.current.videoWidth;
+    canvas.height = videoRef.current.videoHeight;
+    canvas.getContext("2d")?.drawImage(videoRef.current, 0, 0);
+    canvas.toBlob(blob => {
+      if (blob) {
+        const file = new File([blob], `photo_${Date.now()}.jpg`, { type: "image/jpeg" });
+        setStaged(prev => [...prev, { file, preview: URL.createObjectURL(file) }]);
+      }
+    }, "image/jpeg", 0.95);
+  }
+
+  function handleGalleryFiles(files: FileList | null) {
+    if (!files) return;
+    const newFiles = Array.from(files).map(f => ({ file: f, preview: URL.createObjectURL(f) }));
+    setStaged(prev => [...prev, ...newFiles]);
+  }
+
+  function removeStaged(idx: number) {
+    setStaged(prev => {
+      URL.revokeObjectURL(prev[idx].preview);
+      return prev.filter((_, i) => i !== idx);
+    });
+  }
+
+  function handleConfirm() {
+    if (!lineId || staged.length === 0) { handleCancel(); return; }
+    onCapture(lineId, staged.map(s => s.file));
+  }
+
+  function handleCancel() {
+    staged.forEach(s => URL.revokeObjectURL(s.preview));
+    if (streamRef.current) streamRef.current.getTracks().forEach(t => t.stop());
+    onClose();
+  }
+
+  if (!lineId) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+      <div className="bg-white rounded-xl overflow-hidden max-w-lg w-full p-4 flex flex-col items-center gap-3">
+        <h3 className="font-semibold text-lg">Foto{"'"}s toevoegen</h3>
+
+        <div className="flex gap-2 w-full justify-center">
+          <button
+            onClick={() => handleSwitchMode("camera")}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${mode === "camera" ? "bg-blue-700 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
+          >
+            <span className="flex items-center gap-1.5">
+              <Camera className="w-3.5 h-3.5" /> Camera
+            </span>
+          </button>
+          <button
+            onClick={() => handleSwitchMode("gallery")}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${mode === "gallery" ? "bg-blue-700 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
+          >
+            <span className="flex items-center gap-1.5">
+              Galerij
+            </span>
+          </button>
+        </div>
+
+        {mode === "camera" ? (
+          <>
+            {error && <p className="text-red-500 text-sm">{error}</p>}
+            <video ref={videoRef} autoPlay playsInline className="w-full rounded-lg bg-black aspect-video" />
+            <canvas ref={canvasRef} className="hidden" />
+          </>
+        ) : (
+          <div
+            className="w-full rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 flex flex-col items-center justify-center py-12 cursor-pointer hover:border-blue-400 hover:bg-blue-50/50 transition"
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <Camera className="w-10 h-10 text-gray-400 mb-2" />
+            <p className="text-sm text-gray-500 font-medium">Tik om foto{"'"}s te kiezen</p>
+          </div>
+        )}
+        <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => { handleGalleryFiles(e.target.files); e.target.value = ""; }} />
+
+        {staged.length > 0 && (
+          <div className="w-full">
+            <p className="text-xs text-gray-500 mb-1.5 w-full text-center">{staged.length} foto{staged.length !== 1 ? "'s" : ""} geselecteerd</p>
+            <div className="flex flex-wrap gap-2 justify-center">
+              {staged.map((s, idx) => (
+                <div key={s.preview} className="relative group w-14 h-14 rounded-lg overflow-hidden border border-gray-200">
+                  <img src={s.preview} alt="" className="w-full h-full object-cover" />
+                  <button onClick={() => removeStaged(idx)} className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                    <X className="w-4 h-4 text-white" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="flex gap-3 w-full justify-center">
+          <button onClick={handleCancel} className="px-4 py-2 rounded-lg border text-sm hover:bg-gray-50">Annuleren</button>
+          {mode === "camera" && <button onClick={capture} className="px-4 py-2 rounded-lg bg-blue-700 text-white text-sm font-medium hover:bg-blue-800">Foto maken</button>}
+          <button onClick={handleConfirm} disabled={staged.length === 0} className="px-4 py-2 rounded-lg bg-blue-700 text-white text-sm font-medium hover:bg-blue-800 disabled:opacity-60">
+            Toevoegen ({staged.length})
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

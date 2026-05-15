@@ -4,7 +4,8 @@ import { getShowrooms, getCategories } from "@/lib/dataCache";
 import { findRoot, leafOrder } from "@/lib/categoryTree";
 import Link from "next/link";
 import { Plus } from "lucide-react";
-import InventoryTabs, { type RootGroup, type VerschilRoot, type ShowFloorVerschilItem } from "@/components/InventoryTabs";
+import InventoryTabsController from "@/components/InventoryTabsController";
+import { type RootGroup, type VerschilRoot, type ShowFloorVerschilItem } from "@/components/InventoryTabs";
 
 export default async function InventoryPage({
   searchParams,
@@ -93,6 +94,7 @@ export default async function InventoryPage({
       bordNummer: inv.bordNummer,
       stock: inv.stock,
       notes: inv.notes,
+      images: (inv as any).images ?? [],
       createdAt: inv.createdAt.toISOString(),
       isDisplayMaterial: (inv as any).isDisplayMaterial ?? false,
       displayAfmeting: inv.displayAfmeting,
@@ -217,7 +219,7 @@ export default async function InventoryPage({
         </div>
       )}
 
-      <InventoryTabs
+      <InventoryTabsController
         sortedRoots={sortedRoots}
         hasLocatie={hasLocatie}
         verschilMissing={Object.values(missingRootMap)}

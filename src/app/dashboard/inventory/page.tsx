@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Plus } from "lucide-react";
 import InventoryTabsController from "@/components/InventoryTabsController";
 import { type RootGroup, type VerschilRoot, type ShowFloorVerschilItem } from "@/components/InventoryTabs";
+import PageHelp, { HelpList, HelpNote, HelpSection } from "@/components/PageHelp";
 
 export default async function InventoryPage({
   searchParams,
@@ -218,6 +219,79 @@ export default async function InventoryPage({
           ))}
         </div>
       )}
+
+      <PageHelp title="Toelichting Inventarisatie — werkwijze & berekening">
+        <HelpSection title="Wat doe je op deze pagina?">
+          <p>
+            Hier registreer je wat er <strong>daadwerkelijk in de showroom</strong> aanwezig is.
+            Het systeem vergelijkt jouw invoer met het schappenplan en berekent automatisch het
+            verschil (ontbrekend / extra / uitgeleend).
+          </p>
+        </HelpSection>
+
+        <HelpSection title="Werkwijze met foto's (verplicht per locatie)">
+          <HelpList>
+            <li>
+              <strong>Kies eerst één locatie</strong> (bijv. wand 3, bok 2, bord 5) en
+              werk die volledig af voordat je naar de volgende gaat.
+            </li>
+            <li>
+              Maak <strong>duidelijke close-up foto&apos;s van elke sticker</strong> van de
+              displaymaterialen op deze locatie. Zorg dat artikelnummer en barcode
+              scherp leesbaar zijn.
+            </li>
+            <li>
+              <strong>Upload de foto&apos;s per locatie</strong> direct na het maken. Je kunt
+              foto&apos;s altijd verwijderen en opnieuw opnemen als ze onscherp zijn.
+            </li>
+            <li>
+              <strong>Komt er tussentijds een klant binnen?</strong> Maak eerst de foto&apos;s
+              van de huidige locatie af, upload ze, en ga <em>daarna</em> pas naar de
+              klant. Je kunt natuurlijk ook gewoon onderbreken om de klant te ontvangen —
+              maar bij het vervolg moet je deze locatie dan <strong>opnieuw fotograferen</strong>,
+              want je weet anders niet meer zeker of alles is vastgelegd.
+            </li>
+          </HelpList>
+          <HelpNote>
+            Eén locatie tegelijk + foto&apos;s meteen uploaden = geen werk dubbel doen.
+            Onderbreek je halverwege een locatie, dan begin je die locatie opnieuw.
+          </HelpNote>
+        </HelpSection>
+
+        <HelpSection title="Status — hoe wordt die berekend?">
+          <HelpList>
+            <li>
+              <strong className="text-green-700">Aanwezig</strong> — er is een
+              inventarisatie-regel die overeenkomt met het schappenplan
+              (zelfde artikel + locatieType + locatieNummer).
+            </li>
+            <li>
+              <strong className="text-red-700">Ontbreekt</strong> — er staat een artikel
+              op het schappenplan, maar er is géén inventarisatie-regel voor die locatie
+              gevonden, én het artikel is niet uitgeleend.
+            </li>
+            <li>
+              <strong className="text-orange-600">Extra</strong> — je hebt een
+              inventarisatie-regel ingevoerd voor een combinatie die niet op het
+              schappenplan voorkomt.
+            </li>
+            <li>
+              <strong className="text-amber-700">Uitgeleend</strong> — er is een open
+              uitlening gekoppeld aan deze inventarisatie-regel. Klik op de badge om
+              naar de uitlening te springen.
+            </li>
+          </HelpList>
+        </HelpSection>
+
+        <HelpSection title="Tabbladen">
+          <HelpList>
+            <li><strong>Inventarisatie</strong> — alle ingevoerde regels per categorie.</li>
+            <li><strong>Verschil — Ontbreekt</strong> — wat het schappenplan voorschrijft maar nog niet is geïnventariseerd.</li>
+            <li><strong>Verschil — Extra</strong> — wat je hebt geïnventariseerd maar niet op het schappenplan staat.</li>
+            <li><strong>Showvloer — afwijkingen</strong> — vloerartikelen met status <em>beschadigd</em> of <em>niet aanwezig</em>.</li>
+          </HelpList>
+        </HelpSection>
+      </PageHelp>
 
       <InventoryTabsController
         sortedRoots={sortedRoots}

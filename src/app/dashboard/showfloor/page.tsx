@@ -4,6 +4,7 @@ import { getShowrooms, getCategories } from "@/lib/dataCache";
 import { findRoot } from "@/lib/categoryTree";
 import Link from "next/link";
 import ShowFloorManager from "@/components/ShowFloorManager";
+import PageHelp, { HelpList, HelpSection } from "@/components/PageHelp";
 
 export default async function ShowFloorPage({
   searchParams,
@@ -82,6 +83,34 @@ export default async function ShowFloorPage({
           ))}
         </div>
       )}
+
+      <PageHelp title="Toelichting Showvloer — tentoongestelde vloeren">
+        <HelpSection title="Wat registreer je hier?">
+          <p>
+            De daadwerkelijk <strong>tentoongestelde vloerartikelen</strong> in deze
+            showroom, genummerd per positie. Alleen artikelen uit de categorie
+            <em> Vloer</em> zijn beschikbaar — de overige categorieën horen op het
+            schappenplan.
+          </p>
+        </HelpSection>
+
+        <HelpSection title="Statussen en hoe ze meetellen">
+          <HelpList>
+            <li><strong className="text-green-700">Aanwezig</strong> — het vloerstuk staat tentoongesteld en is in goede staat.</li>
+            <li><strong className="text-amber-700">Aanwezig, beschadigd</strong> — staat er, maar moet vervangen worden. Wordt op de inventarisatie-pagina als <em>afwijking</em> en in de bestellijst als <em>te bestellen</em> meegeteld.</li>
+            <li><strong className="text-red-700">Niet aanwezig</strong> — hoort hier te staan, maar ontbreekt. Komt in het verschil-overzicht.</li>
+          </HelpList>
+        </HelpSection>
+
+        <HelpSection title="Wat kun je hier doen?">
+          <HelpList>
+            <li><strong>+ Artikel toevoegen</strong> — een nieuw vloerstuk koppelen aan een positienummer.</li>
+            <li><strong>Status wijzigen</strong> — per regel via het dropdown-veld.</li>
+            <li><strong>Notitie</strong> toevoegen (bijv. &quot;hoek afgesleten&quot;) — verschijnt in het bestellijst-rapport.</li>
+            <li><strong>Verwijderen</strong> via het prullenbak-icoontje.</li>
+          </HelpList>
+        </HelpSection>
+      </PageHelp>
 
       <ShowFloorManager
         showFloors={showFloors as any}

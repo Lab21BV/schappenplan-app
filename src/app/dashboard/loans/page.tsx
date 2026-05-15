@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getShowrooms } from "@/lib/dataCache";
 import Link from "next/link";
 import LoansManager from "@/components/LoansManager";
+import PageHelp, { HelpList, HelpNote, HelpSection } from "@/components/PageHelp";
 
 export default async function LoansPage({
   searchParams,
@@ -97,6 +98,44 @@ export default async function LoansPage({
           ))}
         </div>
       )}
+
+      <PageHelp title="Toelichting Uitleningen — registratie & opvolging">
+        <HelpSection title="Wanneer gebruik je deze pagina?">
+          <p>
+            Telkens als een klant een staal (bord, strook, sample) meeneemt, leg je dat
+            hier vast. Zo weet je wie wat heeft, wanneer het terug moet, en zie je op de
+            inventarisatie-pagina automatisch een <strong className="text-amber-700">Uitgeleend</strong> badge
+            in plaats van een <em>ontbreekt</em>-melding.
+          </p>
+        </HelpSection>
+
+        <HelpSection title="Nieuwe uitlening — verplichte velden">
+          <HelpList>
+            <li><strong>Omschrijving van het staal</strong> (bijv. &quot;Bord 120×60 Sensation Oak Grey&quot;).</li>
+            <li><strong>Klantnaam</strong> (e-mail, telefoon, adres optioneel maar aanbevolen).</li>
+            <li><strong>Geleend op</strong> en <strong>Toegezegd terug</strong> — default is vandaag + 14 dagen.</li>
+            <li>(Optioneel) <strong>Inventaris-item</strong> — als je de exacte locatie kiest, springt de inventarisatie-pagina automatisch op <em>Uitgeleend</em> bij die rij.</li>
+          </HelpList>
+        </HelpSection>
+
+        <HelpSection title="Tabbladen & berekening">
+          <HelpList>
+            <li><strong>Open</strong> — <code className="bg-white/60 px-1 rounded">returnedAt is null</code> én <code className="bg-white/60 px-1 rounded">promisedReturnAt ≥ vandaag</code>.</li>
+            <li><strong className="text-red-700">Te laat</strong> — <code className="bg-white/60 px-1 rounded">returnedAt is null</code> én <code className="bg-white/60 px-1 rounded">promisedReturnAt &lt; vandaag</code>. Dagen te laat = vandaag − toegezegd terug.</li>
+            <li><strong className="text-green-700">Teruggebracht</strong> — <code className="bg-white/60 px-1 rounded">returnedAt</code> is gezet.</li>
+          </HelpList>
+        </HelpSection>
+
+        <HelpSection title="Acties">
+          <HelpList>
+            <li><strong>✓ Terug</strong> aan het eind van de rij → markeert als teruggebracht en verplaatst naar de juiste tab.</li>
+            <li>Klik op de omschrijving voor de <strong>detailpagina</strong> (bewerken, verwijderen, retour ongedaan maken).</li>
+          </HelpList>
+          <HelpNote>
+            Per ongeluk afgemeld? Open de detailpagina en klik op <em>↺ Maak retour ongedaan</em>.
+          </HelpNote>
+        </HelpSection>
+      </PageHelp>
 
       <LoansManager
         loans={loansSerialized}

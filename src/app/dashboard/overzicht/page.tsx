@@ -9,6 +9,7 @@ import InventoryTabs from "@/components/InventoryTabs";
 import type { RootGroup, VerschilRoot, ShowFloorVerschilItem } from "@/components/InventoryTabs";
 import { ShowroomsOverview, LeveranciersOverview, VerschilDetail, TotaalVerschilOverview, UitleningenOverview } from "@/components/HQOverview";
 import type { ShowroomStat, SupplierRow, VerschilShowroom, LoanShowroomStat, OverdueLoanRow } from "@/components/HQOverview";
+import PageHelp, { HelpList, HelpSection } from "@/components/PageHelp";
 
 type View = "overzicht" | "schappenplan" | "inventarisatie" | "verschil" | "uitleningen";
 
@@ -109,6 +110,8 @@ export default async function OverzichtPage({
         </div>
       )}
 
+      <OverzichtHelp view={view} />
+
       {/* ── View content ─────────────────────────────────────────── */}
       {view === "overzicht" && <OverzichtView showrooms={showrooms} />}
       {view === "schappenplan" && <SchappenplanView showroomId={showroomId} showroomName={selectedShowroom?.name ?? ""} />}
@@ -117,6 +120,80 @@ export default async function OverzichtPage({
       {view === "uitleningen" && <UitleningenView showrooms={showrooms} />}
     </div>
   );
+}
+
+// ── Help per view ─────────────────────────────────────────────────────────────
+
+function OverzichtHelp({ view }: { view: View }) {
+  if (view === "overzicht") {
+    return (
+      <PageHelp title="Toelichting HQ Overzicht — wat tel je waar?">
+        <HelpSection title="Tabel per showroom">
+          <HelpList>
+            <li><strong>Schappenplan</strong> — aantal regels op het planogram van die showroom.</li>
+            <li><strong>Inventaris</strong> — aantal inventarisatie-regels met een gevulde <em>locatieType</em> (lege locaties worden uitgesloten).</li>
+            <li><strong>Ontbreekt</strong> — combinaties <code className="bg-white/60 px-1 rounded">artikel + locatieType + locatieNummer</code> die wél op het schappenplan staan maar niet in de inventaris.</li>
+            <li><strong>Extra</strong> — combinaties die wél in de inventaris staan maar niet op het schappenplan.</li>
+          </HelpList>
+        </HelpSection>
+        <HelpSection title="Per leverancier">
+          <p>
+            Voor elk artikel: in hoeveel showrooms staat het op het schappenplan, in
+            hoeveel showrooms is het geïnventariseerd, en hoeveel showrooms wijken af.
+          </p>
+        </HelpSection>
+      </PageHelp>
+    );
+  }
+  if (view === "schappenplan") {
+    return (
+      <PageHelp title="Toelichting — schappenplan van de geselecteerde showroom">
+        <p>Het volledige planogram van de gekozen showroom, gegroepeerd per categorie. Gebruik de showroom-pills bovenaan om te wisselen.</p>
+      </PageHelp>
+    );
+  }
+  if (view === "inventarisatie") {
+    return (
+      <PageHelp title="Toelichting — inventarisatie van de geselecteerde showroom">
+        <HelpList>
+          <li>Toont alle inventarisatie-regels van de gekozen showroom, plus tabbladen <em>Ontbreekt</em> / <em>Extra</em>.</li>
+          <li>Verschilberekening: combinatie <code className="bg-white/60 px-1 rounded">artikel + locatieType + locatieNummer</code> wordt vergeleken tussen planogram en inventaris.</li>
+          <li>Displaymateriaal (markering <em>isDisplayMaterial</em>) telt niet mee in het verschil.</li>
+        </HelpList>
+      </PageHelp>
+    );
+  }
+  if (view === "verschil") {
+    return (
+      <PageHelp title="Toelichting Verschil — totaal en per showroom">
+        <HelpSection title="Wat zie je hier?">
+          <HelpList>
+            <li><strong>Alle showrooms</strong> — matrix: artikelen × showrooms. Per cel: <em>Ontbreekt</em>, <em>Extra</em> of leeg.</li>
+            <li><strong>Per showroom</strong> — selecteer een showroom om alleen die afwijkingen te zien.</li>
+          </HelpList>
+        </HelpSection>
+        <HelpSection title="Export">
+          <HelpList>
+            <li><strong>↓ Excel</strong> — één tabblad per leverancier, kolommen per showroom.</li>
+            <li><strong>↓ CSV</strong> — plat bestand met alle leveranciers.</li>
+          </HelpList>
+        </HelpSection>
+      </PageHelp>
+    );
+  }
+  if (view === "uitleningen") {
+    return (
+      <PageHelp title="Toelichting Uitleningen overzicht">
+        <HelpList>
+          <li><strong>Open</strong> per showroom = uitleningen waarvan <code className="bg-white/60 px-1 rounded">returnedAt</code> nog leeg is.</li>
+          <li><strong>Te laat</strong> = open uitleningen waarvan <code className="bg-white/60 px-1 rounded">promisedReturnAt &lt; vandaag</code>.</li>
+          <li><strong>Dagen te laat</strong> = vandaag − <em>toegezegd terug</em>, afgerond op dagen.</li>
+          <li>Onderaan: complete cross-showroom lijst van te-late stalen met klantgegevens en verkoper.</li>
+        </HelpList>
+      </PageHelp>
+    );
+  }
+  return null;
 }
 
 // ── Uitleningen ───────────────────────────────────────────────────────────────

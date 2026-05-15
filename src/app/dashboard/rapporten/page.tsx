@@ -16,6 +16,7 @@ import {
   type GhostRow,
   type OntbreektRow,
 } from "@/components/RapportenViews";
+import PageHelp, { HelpList, HelpSection } from "@/components/PageHelp";
 
 type Tab =
   | "omzet"
@@ -72,6 +73,8 @@ export default async function RapportenPage({
         ))}
       </div>
 
+      <RapportenHelp tab={tab} />
+
       {tab === "ontbreekt" && <Ontbreekt />}
       {tab === "ghost" && <Ghost />}
       {tab === "verdelen" && <Verdelen />}
@@ -80,6 +83,88 @@ export default async function RapportenPage({
       {tab === "bestellijst" && <Bestellijst />}
     </div>
   );
+}
+
+// ── Help per tab ──────────────────────────────────────────────────────────────
+
+function RapportenHelp({ tab }: { tab: Tab }) {
+  if (tab === "ontbreekt") {
+    return (
+      <PageHelp title="Toelichting — Ontbrekend op showroom">
+        <HelpSection title="Wie staat in deze lijst?">
+          <p>Artikelen die wel op het schappenplan staan, maar:</p>
+          <HelpList>
+            <li>géén overeenkomstige inventarisatie-regel hebben (zelfde <code className="bg-white/60 px-1 rounded">artikel + locatieType + locatieNummer</code>);</li>
+            <li>én niet op dit moment uitgeleend zijn (open <em>Loan</em> voor dat artikel sluit uit);</li>
+            <li>plus de status uit het showvloer-record als die er is (bv. <em>beschadigd</em>).</li>
+          </HelpList>
+        </HelpSection>
+      </PageHelp>
+    );
+  }
+  if (tab === "ghost") {
+    return (
+      <PageHelp title="Toelichting — Stalen zonder schappenplan (ghost)">
+        <p>
+          Inventarisatie-regels met een locatie, waarvoor de combinatie
+          <code className="bg-white/60 px-1 rounded mx-1">artikel + locatie</code>
+          niet op het schappenplan voorkomt. Bestelfouten of restanten.
+        </p>
+      </PageHelp>
+    );
+  }
+  if (tab === "verdelen") {
+    return (
+      <PageHelp title="Toelichting — Stalen verdelen">
+        <HelpSection title="Berekening per artikel">
+          <HelpList>
+            <li><strong>Ontbreekt in</strong> — showrooms waar het artikel op het schappenplan staat maar geen enkele inventarisatie-regel heeft.</li>
+            <li><strong>Dubbel in</strong> — showrooms waar de totale stock (records × stock, minimaal 1 per record) &gt; 1 is.</li>
+            <li>Sortering: meeste afwijkingen eerst, daarna leverancier en artikelnummer.</li>
+          </HelpList>
+        </HelpSection>
+      </PageHelp>
+    );
+  }
+  if (tab === "uitcollectie") {
+    return (
+      <PageHelp title="Toelichting — Uit collectie">
+        <p>
+          Alle inventarisatie- én planogram-regels waarvan het artikel een andere
+          status heeft dan <em>Collectie</em> (bv. <em>Uit collectie</em>, <em>Vervangen</em>).
+          Per regel zie je of het uit inventaris of uit het schappenplan komt.
+        </p>
+      </PageHelp>
+    );
+  }
+  if (tab === "omzet") {
+    return (
+      <PageHelp title="Toelichting — Omzet per referentie">
+        <HelpSection title="Kolommen">
+          <HelpList>
+            <li><strong>Omzet</strong> — som van <code className="bg-white/60 px-1 rounded">revenue</code> per artikel uit <em>SalesData</em>.</li>
+            <li><strong>Aandeel %</strong> — omzet artikel ÷ totale omzet × 100.</li>
+            <li><strong>Showrooms met staal</strong> — aantal unieke showrooms waar het artikel in de inventaris staat (met locatie).</li>
+            <li><strong>% showrooms</strong> — showrooms met staal ÷ totaal aantal showrooms × 100.</li>
+          </HelpList>
+        </HelpSection>
+      </PageHelp>
+    );
+  }
+  if (tab === "bestellijst") {
+    return (
+      <PageHelp title="Toelichting — Bestellijst">
+        <HelpSection title="Wat staat er in de Excel?">
+          <HelpList>
+            <li>Eén tabblad per leverancier, gegroepeerd per display-formaat.</li>
+            <li><strong>Inclusief</strong>: stalen die op het schappenplan staan maar ontbreken in de inventaris, én vloerartikelen met showvloer-status <em>beschadigd</em> of <em>niet aanwezig</em>.</li>
+            <li><strong>Exclusief</strong>: artikelen die nu open uitgeleend zijn — die hoeven niet besteld te worden.</li>
+          </HelpList>
+        </HelpSection>
+      </PageHelp>
+    );
+  }
+  return null;
 }
 
 // ── Ontbrekende stalen (planogram \ inventaris, excl. uitleen) ────────────────

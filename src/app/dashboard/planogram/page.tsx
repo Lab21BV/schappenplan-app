@@ -5,6 +5,7 @@ import { getShowrooms, getCategories } from "@/lib/dataCache";
 import { buildCategoryTree } from "@/lib/categoryTree";
 import PlanogramView from "@/components/PlanogramView";
 import PlanogramImport from "@/components/PlanogramImport";
+import PageHelp, { HelpList, HelpNote, HelpSection } from "@/components/PageHelp";
 
 export default async function PlanogramPage({
   searchParams,
@@ -80,6 +81,39 @@ export default async function PlanogramPage({
           ))}
         </div>
       )}
+
+      <PageHelp title="Toelichting Schappenplan — opbouw & gebruik">
+        <HelpSection title="Wat is het schappenplan?">
+          <p>
+            Het schappenplan is de <strong>norm</strong>: welke artikelen horen op welke
+            locatie in deze showroom te staan. Het wordt door het hoofdkantoor bepaald
+            en is de basis voor de verschil-berekening op de inventarisatiepagina.
+          </p>
+        </HelpSection>
+
+        <HelpSection title="Lezen van een locatie">
+          <HelpList>
+            <li><strong>Locatie type / nummer</strong> — bijv. <code className="bg-white/60 px-1 rounded">wand 3</code> of <code className="bg-white/60 px-1 rounded">bok 2</code>.</li>
+            <li><strong>Positie</strong> — volgorde binnen die locatie (links→rechts, boven→onder).</li>
+            <li><strong>Artikel</strong> — artikelnummer + naam.</li>
+            <li><strong>Display-afmeting</strong> — bord/strook-maat (bijv. 120×60).</li>
+          </HelpList>
+        </HelpSection>
+
+        <HelpSection title="Wat kun je hier doen?">
+          <HelpList>
+            <li><strong>Standaard invullen</strong> — handmatig per locatie een artikel toewijzen.</li>
+            {isHQ && <li><strong>Importeer / Exporteer</strong> (alleen HQ) — CSV/Excel uitwisselen. Importeren vervangt het bestaande plan voor de gekozen showroom volledig.</li>}
+            <li>Als verkoper kun je het plan inzien maar niet wijzigen — meld fouten bij HQ.</li>
+          </HelpList>
+          {isHQ && (
+            <HelpNote>
+              Importeren overschrijft het bestaande schappenplan van de geselecteerde
+              showroom volledig. Maak eerst een export als back-up.
+            </HelpNote>
+          )}
+        </HelpSection>
+      </PageHelp>
 
       <PlanogramView
         showroomId={showroomId}

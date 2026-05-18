@@ -176,6 +176,22 @@ model SalesData {
   @@index([articleId])
 }
 
+model ReserveSample {
+  id            String   @id @default(cuid())
+  articleNumber String
+  articleName   String
+  status        String   @default("Op voorraad") // Op voorraad | Uitgeleend | Beschadigd | Vermist | Retour leverancier
+  bordStrook    String?  // Bord | Strook
+  afmeting      String?
+  aantal        Int      @default(1)
+  notities      String?
+  leverancier   String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([articleNumber])
+}
+
 model Loan {
   id              String    @id @default(cuid())
   showroomId      String

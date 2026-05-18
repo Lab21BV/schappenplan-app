@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getShowrooms, getCategories } from "@/lib/dataCache";
 import { findRoot, leafOrder } from "@/lib/categoryTree";
 import Link from "next/link";
-import { Plus } from "lucide-react";
+import { Plus, Building2 } from "lucide-react";
 import InventoryTabsController from "@/components/InventoryTabsController";
 import { type RootGroup, type VerschilRoot, type ShowFloorVerschilItem } from "@/components/InventoryTabs";
 import PageHelp, { HelpList, HelpNote, HelpSection } from "@/components/PageHelp";
@@ -192,13 +192,25 @@ export default async function InventoryPage({
             {isHQ ? `Showroom ${selectedShowroom?.name} · ` : ""}Per afdeling · Per wand / bok / bord
           </p>
         </div>
-        <Link
-          href="/dashboard/inventory/new"
-          className="flex items-center gap-2 bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-800 transition"
-        >
-          <Plus className="w-4 h-4" />
-          Nieuwe inventarisatie
-        </Link>
+        <div className="flex items-center gap-2">
+          {isHQ && (
+            <Link
+              href="/dashboard/inventory/hq"
+              className="flex items-center gap-2 bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-200 transition"
+              title="Reserve stalen Amersfoort"
+            >
+              <Building2 className="w-4 h-4" />
+              HQ
+            </Link>
+          )}
+          <Link
+            href="/dashboard/inventory/new"
+            className="flex items-center gap-2 bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-800 transition"
+          >
+            <Plus className="w-4 h-4" />
+            Nieuwe inventarisatie
+          </Link>
+        </div>
       </div>
 
       {/* Showroom selector for HQ */}
